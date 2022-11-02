@@ -3,7 +3,6 @@ import socket
 import json 
 import threading
 import zlib 
-list.__iter__
 class  Socket() : 
        MAX_BUFFER = 1024
        SEND_LEN = 1024 
@@ -14,6 +13,7 @@ class  Socket() :
        def __init__(self,_socket) :
            self.socket = _socket 
            self.id = 0
+           self.is_authorised = False 
 
        def start(self) : 
            self.send_threads = queue.Queue()
@@ -51,6 +51,8 @@ class  Socket() :
            #find and send the length of the data 
            data_length =  len(data)
            len_str = str(data_length).zfill(self.length_LEN).encode()
+           #print(len_str)
+           #print(data)
            self.socket.sendall(len_str)
            self.socket.sendall(data)
        def handle_body(self,data) : 
@@ -58,27 +60,38 @@ class  Socket() :
            del data["body"]
            return body
        #recieve functions 
-       def recv(self,length) :
+       def recv(self,length,decompress=True) :
            recv = 0
            chunks = []
-           if recv < length : 
+           while recv < length : 
               chunk = self.socket.recv(length-recv) 
               if not chunk : 
                  raise Warning("Connection closed abruptly")
               recv += len(chunk) 
               chunks.append(chunk)
-           return zlib.decompress(b"".join(chunks)).decode() 
+           #print("Recv :: ", b"".join(chunks) )
+           if decompress : 
+             return zlib.decompress(b"".join(chunks)).decode() 
+           else : 
+              return b"".join(chunks).decode()
+
        def Recv(self) : 
-           length = int( self.socket.recv(self.HEADER_LEN).lstrip() )
+           length = int( self.recv(self.HEADER_LEN, decompress=False).lstrip() )
            data = json.loads( self.recv(length) ) 
            body = self.handle_body(data)
            url = data["url"]
-           if url in self.url_maps : 
+           if not self.is_authorised :
+              if url in self.preauth_url_maps : 
+                return self.preauth_url_maps[url](body,data)
+              else : 
+                raise Exception(407)          
+           if  url in self.url_maps : 
               thread = threading.Thread( target = self.url_maps[url] , args = (body,data)) 
               thread.start()
               return thread 
            else : 
                raise Exception(400)
+
        def Recv_Worker(self) : 
            while True : 
                self.Recv()
