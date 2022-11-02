@@ -1,7 +1,8 @@
+from connectdb import connectToDB 
 
-
+conn = connectToDB()
 #signs up a user
-def signUpUser(username, password, conn):
+def signUpUser(username, password):
     cur = conn.cursor()
     cur.execute(f"""SELECT * FROM Users WHERE USERNAME='{username}'""")
     if (len(cur.fetchall()) == 0):
@@ -11,7 +12,7 @@ def signUpUser(username, password, conn):
     return False
 
 #logs in a user
-def logInUser(username,password,port, conn):
+def logInUser(username,password,port):
     cur = conn.cursor()
     cur.execute(f"""SELECT * FROM Users WHERE USERNAME='{username}' AND PASSWORD='{password}' """)
     if (len(cur.fetchall()) == 0):
@@ -22,13 +23,13 @@ def logInUser(username,password,port, conn):
         return True
 
 #logs out a user
-def logOutUser(username, conn):
+def logOutUser(username):
     cur = conn.cursor() 
     cur.execute(f"""UPDATE Users SET STATUS = 'offline' WHERE USERNAME = '{username}' """)
     conn.commit()
 
 #checks if a user is online
-def checkOnline(username, conn):
+def checkOnline(username):
     cur = conn.cursor() 
     cur.execute(f"""SELECT * FROM Users WHERE STATUS = 'online' AND USERNAME = '{username}' """)
     if(len(cur.fetchall()) == 0):
