@@ -1,6 +1,7 @@
 import psycopg2
 
 #connects to the database and returns the connection object
+
 def connectToDB():
     conn = psycopg2.connect(database="test",
                         host="localhost",

@@ -1,16 +1,18 @@
-from connectdb import connectToDB
-from userdb import *
-from createdb import *
+from msg_serverdb import *
+from datetime import datetime,timezone
+import time
 
-conn = connectToDB()
+# for i in range (0,100):
+#     dt = datetime.now(timezone.utc)
+#     addMessage(i,f"user{i}",f"user{i%10}",f"Hi {i%10}","str",dt,dt)
 
-for i in range(1000,1100):
-    signUpUser(f"user{i}",f"pass{i}", conn)
+#updateSeenStatus("user2","user42",datetime.now(timezone.utc))
+#removeReadMessages("user2","user42")
+for i in getReadtMsg("user2","user42"):
+    print(i)
 
-for i in range(0,100,2):
-    logInUser(f"user{i}",f"pass{i}",1000+i, conn)
 
-for i in range(0,100,4):
-    logOutUser(f"user{i}", conn)
+# for i in getUnreadtMsg("user2","user22",datetime.now(timezone.utc)):
+#     print(i)
 
-print(checkOnline(f"user{2}",conn))
+#removeUnreadMessages("user2","user22")

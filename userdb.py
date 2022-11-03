@@ -1,6 +1,6 @@
 from connectdb import connectToDB 
-
 conn = connectToDB()
+
 #signs up a user
 def signUpUser(username, password):
     cur = conn.cursor()
