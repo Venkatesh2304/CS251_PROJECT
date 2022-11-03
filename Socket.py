@@ -3,6 +3,9 @@ import socket
 import json 
 import threading
 import zlib 
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 class  Socket() : 
        MAX_BUFFER = 1024
        SEND_LEN = 1024 
@@ -32,8 +35,8 @@ class  Socket() :
        
        #send functions 
        #add to the send threads 
-       def add_send_queue(self,url,body,headers = {}) : 
-           self.send_threads.put((url,body,headers))
+       def add_send_queue(self,url,body,headers = {},do=lambda : 0 ) : 
+           self.send_threads.put((url,body,headers,do))
        #main worker which keeps looking for any send and then sends it in order 
        def Send_Worker(self) : 
            while True : 
@@ -41,20 +44,25 @@ class  Socket() :
              self.Send(*args)
              self.send_threads.task_done()
        #The customised Send function which sends a given message 
-       def Send(self,url,body,headers) :
+       def Send(self,url,body,headers,do) :
            #make the request data
            data = { "url" : url , "body" : body }
            headers.update(self._headers)
            data.update(headers) 
-           data = json.dumps(data).encode()
+           try :
+             data = json.dumps(data).encode()
+           except Exception as e : 
+              print(data,e)
            data = zlib.compress(data)
            #find and send the length of the data 
            data_length =  len(data)
            len_str = str(data_length).zfill(self.length_LEN).encode()
            #print(len_str)
-           #print(data)
+           
            self.socket.sendall(len_str)
            self.socket.sendall(data)
+           do() 
+
        def handle_body(self,data) : 
            body = data["body"]
            del data["body"]
@@ -80,6 +88,7 @@ class  Socket() :
            data = json.loads( self.recv(length) ) 
            body = self.handle_body(data)
            url = data["url"]
+           #print(url)
            if not self.is_authorised :
               if url in self.preauth_url_maps : 
                 return self.preauth_url_maps[url](body,data)
