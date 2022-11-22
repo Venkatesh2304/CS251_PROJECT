@@ -1,0 +1,31 @@
+==> in_venkatesh <==
+venkatesh
+123
+yash
+36
+-1
+
+
+==> in_aadithya <==
+aadithya
+123
+atishay
+86
+-1
+
+
+==> in_atishay <==
+atishay
+123
+aadithya
+19
+-1
+
+
+==> in_yash <==
+yash
+123
+venkatesh
+26
+-1
+

@@ -1,14 +1,16 @@
+from datetime import datetime
 import socket
-import sys
 import time 
-import json 
-import http.client
-import threading
 from Socket import Socket 
 import msg_client as db 
+from termcolor import colored
+import logging
+
+
 server_address = ('localhost', 10000 )
 
 class Client(Socket) : 
+      
       def __init__(self, _socket , user , addr = None ):
           self.addr = addr    
           self.user =  user
@@ -18,6 +20,7 @@ class Client(Socket) :
                             "/read_reciept" : self.read_reciept , "/recieve_msg": self.recieve_msg}
           self.preauth_url_maps = self.url_maps
       def login_req(self,user,password) :
+          logging.basicConfig(filename=f"out_{user}",level="INFO")
           self.add_send_queue("/login",{"user" : user , "password" : password})
       def login_res(self,data,headers) : 
           if data : 
@@ -31,36 +34,34 @@ class Client(Socket) :
             print("User created") 
           else : 
              print("Already exists")
-      def send_msg(self,to,msg,headers ={}) :
+      def send_msg(self,to,msg,isGroup=False,headers ={}) :
           id = self.db.addSentMsg(to,msg,"text")
-          msg = {  "id": id  , "to" : to , "msg" : msg }
+          msg = {  "id": id  , "to" : to , "msg" : msg  , "isGroup" : isGroup}
           self.add_send_queue("/send_msg",msg,headers)
       def recieve_msg(self,data,headers) : 
           t = time.time()
+          data = data if type(data) == list else [data]
           if type(data) == list : 
              for data in data : 
-                self.print(f"""Message recv from :: {data['sender']}  , id ::  {data['id']} ,time :: {data['sent']} {data['msg']}  """)
-                self.add_send_queue("/read_reciept", {"id": data['id'] , "time": t})
+                self.print(colored("You have recieved a message from","blue") + f""":: {data['sender']} , msg :: {data['msg']} , time :: { datetime.fromtimestamp(data['sent']).strftime("%H:%M:%S")  }    """)
+                self.add_send_queue("/read_reciept", {"id": data['id'] , "time": t , "sender" : data["sender"]})
                 self.db.addRecvMsg( data["id"] , data["sent"] , data["msg"] , t , "text")
-          else : 
-             self.print(f"""Message  recv from  :: {data['sender']}  , time :: {data['sent']} , id :: {data['id']} ,  {data['msg']} """)
-             self.db.addRecvMsg( data["id"] , data["sent"] , data["msg"] , t , "text")
-             self.add_send_queue("/read_reciept", {"id": data['id'] , "sender" : data["sender"] , "time": t})        
       def read_reciept(self,data,headers) : 
           level = data["level"]
           msg = self.db.getMsgSent(data["id"])
           if level == 0 : 
-             self.print(f"Error Sending to Server :: {msg} ")
+             self.print(f"Error Sending Message to the Server :: {msg} ")
           else :
             if level == 1 :     
               self.db.updateTimeSent( data["id"] , data["time"] )
-              self.print(f"Message Sent to Server :: {msg} {data['time']}") 
+              self.print( colored("Your message has been sent to server","yellow") ,f":: {msg} , sent time :: {datetime.fromtimestamp(data['time']).strftime('%H:%M:%S')}") 
             elif level == 2  : 
                if "reciepts" in data : 
                  for data in data["reciepts"] : 
-                   self.print(f"Message Sent to Reciever :: {msg} {data['time']} ")                    
+                   self.print( colored("Your message has been sent to the reciever","green") +f":: {msg} , sent time :: {datetime.fromtimestamp(data['time']).strftime('%H:%M:%S')}") 
+                   self.db.updateTimeRecieved(data["id"],data["time"])                    
                else : 
-                   self.print(f"Message Sent to Reciever :: {msg} {data['time']} ")
+                   self.print( colored("Your message has been sent to the reciever","green") +f":: {msg} , sent time :: {datetime.fromtimestamp(data['time']).strftime('%H:%M:%S')}") 
                    self.db.updateTimeRecieved(data["id"],data["time"])                    
             else : 
                 pass 
@@ -71,43 +72,21 @@ class Client(Socket) :
       def add_members(self,gname,members) : 
           members  =  [members] if type(members) != list else members 
           self.add_send_queue("/add_members",{"gname":gname,"members":members})
-      def send_group_msg(self,gname,msg) 
-
+          
       def print(self,*args) : 
-          #args = (f"Client {self.user} ",) + args  
-          print(*args)          
+          logging.info(" ".join(args))       
         
 sock = Client( socket.socket(socket.AF_INET, socket.SOCK_STREAM) , 1)
 sock.connect(server_address)
 sock.start()
-sock.login_req(input("user : "),input("pass : "))
+sock.login_req(input("User : \n"),input("Password : \n"))
+
 while True : 
-     i = input("send to : ")
+     inputs =  { "Send" :  sock.send_msg , "SendGroup" : lambda to,msg : sock.send_msg(to,msg,True) , "CreateGroup" : sock.create_group ,
+                  "AddMember" : sock.add_members } #, "PrintRecieved" : sock.print_recv , "PrintSent" : sock.print_sent }     
+     i = input("")
      if i == "-1" : 
-        time.sleep(20)
         break 
-     j = input("msg : ")
+     j = input("")
      sock.send_msg(i,j)   
-
-
-# n = 2
-# def t(k) : 
-#  sock = Client( socket.socket(socket.AF_INET, socket.SOCK_STREAM) , k)
-#  sock.connect(server_address)
-#  sock.start()
-#  print(f"client {k} started")
-#  if len(sys.argv) == 2 : 
-#      sock.login_req(input("user : "),input("pass : "))
-#      input()
-#  else :
-#    sock.login_req(str(k),"1")
-#  for i in range(2) :
-#      msg = "test messsage number"  +  f" client ==> {k} msg_no ==> {i}"
-#      sock.send_msg(str(n-k),msg)   
-#      time.sleep(1)
-#  #time.sleep(100)
-# #t(1)
-# for i in range(1,n) : 
-#          client_thread = threading.Thread(target=t,args=(i,))
-#          client_thread.start()
 

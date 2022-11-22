@@ -1,0 +1,19 @@
+==> out_venkatesh <==
+INFO:root:[33mYour message has been sent to server[0m :: 36 , sent time :: 04:15:50
+INFO:root:[34mYou have recieved a message from[0m:: yash , time :: 04:15:53  26  
+INFO:root:[32mYour message has been sent to the reciever[0m:: 36 , sent time :: 04:15:53
+
+==> out_aadithya <==
+INFO:root:[33mYour message has been sent to server[0m :: 86 , sent time :: 04:15:51
+INFO:root:[34mYou have recieved a message from[0m:: atishay , time :: 04:15:52  19  
+INFO:root:[32mYour message has been sent to the reciever[0m:: 86 , sent time :: 04:15:52
+
+==> out_atishay <==
+INFO:root:[34mYou have recieved a message from[0m:: aadithya , time :: 04:15:51  86  
+INFO:root:[33mYour message has been sent to server[0m :: 19 , sent time :: 04:15:52
+INFO:root:[32mYour message has been sent to the reciever[0m:: 19 , sent time :: 04:15:52
+
+==> out_yash <==
+INFO:root:[34mYou have recieved a message from[0m:: venkatesh , time :: 04:15:50  36  
+INFO:root:[33mYour message has been sent to server[0m :: 26 , sent time :: 04:15:53
+INFO:root:[32mYour message has been sent to the reciever[0m:: 26 , sent time :: 04:15:53

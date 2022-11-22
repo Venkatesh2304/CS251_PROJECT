@@ -6,8 +6,9 @@ from Socket import Socket
 import pandas as pd 
 import msg_serverdb as msg_db
 import userdb  as user_db 
-user_db.signUpUser("ven","123")
-user_db.signUpUser("aad","123")
+
+for user in ["venkatesh","aadithya","atishay","yash"] : 
+    user_db.signUpUser(user,"123")
 
 clients = {}
 # class DB(pd.DataFrame) :
@@ -79,16 +80,13 @@ class ClientConnection(Socket) :
         
 sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 server_address = ('localhost', 10000)
-print('Starting up on {} port {}'.format(*server_address))
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 sock.bind(server_address)
 sock.listen(100)
 
 while True:
-        print('waiting for a connection')
         connection, client_address = sock.accept()
-        print('connection from', client_address)
-        print("thread started")
+        print('Connection from', client_address)
         client_thread = threading.Thread(target=client_handle,args=(connection,client_address))
         client_thread.start()
         
