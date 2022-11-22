@@ -20,7 +20,6 @@ def getAllUnrecievedMsg(user):
     cur = conn.cursor()
     cur.execute(f"""SELECT * FROM msg_server WHERE RECIEVER='{user}'""")
     msg_list = cur.fetchall()
-    print(len(msg_list))
     return msg_list
 
 #removes the message with the given id, useless ig
@@ -31,6 +30,11 @@ def removeMessage(id_rec):
     tid = tuple([i[0] for i in id_rec])
     tuser = tuple([i[1] for i in id_rec])
     cur.execute(f"""DELETE FROM msg_server WHERE OID IN {tid} AND RECIEVER IN {tuser}""")
+    conn.commit()
+
+def updateTimeRecieved(oid, sender, reciever, timeRecieved):
+    cur = conn.cursor()
+    cur.execute(f"""UPDATE msg_server SET TIME_RECIEVED = TIMESTAMP '{timeRecieved}' WHERE OID = '{oid}' AND SENDER = '{sender}' AND RECIEVER = '{reciever}'  """)
     conn.commit()
 
 #function to update the id, recieved time  ,receiver (verify)

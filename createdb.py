@@ -15,8 +15,18 @@ cur.execute("""CREATE TABLE msg_server(
              MESSAGE TEXT,
              TYPE TEXT,
              TIME_SENT TIMESTAMP,
+             TIME_RECIEVED TIMESTAMP,
              PRIMARY KEY(SENDER,OID));""")
 cur.execute("CREATE INDEX RECIEVER_INDEX ON msg_server(RECIEVER)")
+
+# cur.execute("""DROP TABLE IF EXISTS msg_client_sent""")
+# cur.execute("""CREATE TABLE msg_client_sent(
+#              ID INTEGER IDENTITY PRIMARY KEY,
+#              RECIEVER TEXT,
+#              MESSAGE TEXT,
+#              TYPE TEXT,
+#              TIME_SENT TIMESTAMP);""")
+# cur.execute("CREATE INDEX RECIEVER_INDEX ON msg_client_sent(RECIEVER)")
 conn.commit()
 conn.close()
 
