@@ -6,14 +6,13 @@
 from connectdb import connectToDB 
 conn = connectToDB()
 
-def addMessage(reciever,message,typ):
+def addSentMsg(reciever,message,typ):
     cur = conn.cursor()
     cur.execute("SELECT * FROM msg_client_sent")
     id = len(cur.fetchall()) + 1
     cur.execute(f"""INSERT INTO msg_client_sent(ID, RECIEVER,MESSAGE,TYPE) VALUES ({id},'{reciever}','{message}','{typ}')""")
     conn.commit() 
     return id 
-
 
 def updateTimeSent(id,timeSent):
     cur = conn.cursor()

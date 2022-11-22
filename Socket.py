@@ -17,14 +17,12 @@ class  Socket() :
            self.socket = _socket 
            self.id = 0
            self.is_authorised = False 
-
        def start(self) : 
            self.send_threads = queue.Queue()
            self.send_main_worker = threading.Thread(target=self.Send_Worker)
            self.send_main_worker.start()
            self.recieve_worker = threading.Thread(target=self.Recv_Worker)
            self.recieve_worker.start()
-
        def __getattr__(self,name) : 
            if name in self.__dict__ :  
               return  self.__dict__[name] 

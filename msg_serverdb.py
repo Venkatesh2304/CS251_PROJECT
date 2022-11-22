@@ -1,3 +1,4 @@
+from datetime import datetime
 from connectdb import connectToDB 
 conn = connectToDB()
 
@@ -10,10 +11,12 @@ def addMessage(oid,sender,reciever,message,typ,timesent):
     # cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
     # conn.commit()
     try:
+        timesent = datetime.fromtimestamp(timesent)
         cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
         conn.commit()
     except:
         return
+
 #gives all the unrecieved messages of a user
 #rtype [[]] 
 def getAllUnrecievedMsg(user):
@@ -25,15 +28,14 @@ def getAllUnrecievedMsg(user):
 #removes the message with the given id, useless ig
 #id ,reciever 
 #[id] , reciever
-def removeMessage(id_rec):
+def removeMessage(id,sender,reciever):
     cur = conn.cursor()
-    tid = tuple([i[0] for i in id_rec])
-    tuser = tuple([i[1] for i in id_rec])
-    cur.execute(f"""DELETE FROM msg_server WHERE OID IN {tid} AND RECIEVER IN {tuser}""")
+    cur.execute(f"""DELETE FROM msg_server WHERE OID = {id} AND SENDER = '{sender}' AND RECIEVER = '{reciever}'""")
     conn.commit()
 
 def updateTimeRecieved(oid, sender, reciever, timeRecieved):
     cur = conn.cursor()
+    timeRecieved = datetime.fromtimestamp(timeRecieved)
     cur.execute(f"""UPDATE msg_server SET TIME_RECIEVED = TIMESTAMP '{timeRecieved}' WHERE OID = '{oid}' AND SENDER = '{sender}' AND RECIEVER = '{reciever}'  """)
     conn.commit()
 

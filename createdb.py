@@ -15,16 +15,16 @@ cur.execute("""CREATE TABLE Users(
              STATUS TEXT,
              PORT INTEGER);""")
 
-# cur.execute("""DROP TABLE IF EXISTS msg_server""")
-# cur.execute("""CREATE TABLE msg_server(
-#              OID INTEGER,
-#              SENDER TEXT,
-#              RECIEVER TEXT,
-#              MESSAGE TEXT,
-#              TYPE TEXT,
-#              TIME_SENT TIMESTAMP,
-#              TIME_RECIEVED TIMESTAMP,
-#              PRIMARY KEY(SENDER,OID));""")
+cur.execute("""DROP TABLE IF EXISTS msg_server""")
+cur.execute("""CREATE TABLE msg_server(
+             OID INTEGER,
+             SENDER TEXT,
+             RECIEVER TEXT,
+             MESSAGE TEXT,
+             TYPE TEXT,
+             TIME_SENT TIMESTAMP,
+             TIME_RECIEVED TIMESTAMP,
+             PRIMARY KEY(SENDER,OID));""")
 # cur.execute("CREATE INDEX RECIEVER_INDEX ON msg_server(RECIEVER)")
 
 cur.execute("""DROP TABLE IF EXISTS msg_client_sent""")
@@ -39,12 +39,14 @@ cur.execute("""CREATE TABLE msg_client_sent(
 
 cur.execute("""DROP TABLE IF EXISTS msg_client_recieved""")
 cur.execute("""CREATE TABLE msg_client_recieved(
-             ID INTEGER PRIMARY KEY,
+             ID INTEGER,
              SENDER TEXT,
              MESSAGE TEXT,
              TYPE TEXT,
              TIME_SENT TIMESTAMP,
-             TIME_RECIEVED TIMESTAMP);""")
+             TIME_RECIEVED TIMESTAMP,
+             PRIMARY KEY (ID,SENDER));""")
+             
 cur.execute("CREATE INDEX SENDER_INDEX ON msg_client_recieved(SENDER)")
 
 conn.commit()
