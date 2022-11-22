@@ -4,27 +4,33 @@ conn = connectToDB()
 #adds a message sent to database
 #checks for _id collision 
 #return the new id even if already inserted 
-def addMessage(_id,sender,reciever,message,typ,sent):
+def addMessage(oid,sender,reciever,message,typ,timesent):
     #remove timeseen , add old _id (_id) while adding check wheter the old _id for that sender is already there 
     cur = conn.cursor()
-    cur.execute(f"""INSERT INTO msg_server(ID,SENDER,RECIEVER,MESSAGE,TYPE,STATUS,TIME_SENT,TIME_SEEN) VALUES ({id},'{sender}','{reciever}','{message}','{typ}','NR',TIMESTAMP '{timesent}',TIMESTAMP '{timeseen}')""")
-    conn.commit()
-    cur.execute("SELECT * FROM msg_server")
-      
+    # cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
+    # conn.commit()
+    try:
+        cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
+        conn.commit()
+    except:
+        return
 #gives all the unrecieved messages of a user
 #rtype [[]] 
 def getAllUnrecievedMsg(user):
     cur = conn.cursor()
-    cur.execute(f"""SELECT ID,SENDER,MESSAGE,TYPE,TIME_SENT,TIME_SEEN FROM msg_server WHERE RECIEVER='{user}' AND STATUS='NR'""")
+    cur.execute(f"""SELECT * FROM msg_server WHERE RECIEVER='{user}'""")
     msg_list = cur.fetchall()
+    print(len(msg_list))
     return msg_list
 
 #removes the message with the given id, useless ig
 #id ,reciever 
 #[id] , reciever
-def removeMessage(id,):
+def removeMessage(id_rec):
     cur = conn.cursor()
-    cur.execute(f"""DELETE FROM msg_server WHERE ID={id}""")
+    tid = tuple([i[0] for i in id_rec])
+    tuser = tuple([i[1] for i in id_rec])
+    cur.execute(f"""DELETE FROM msg_server WHERE OID IN {tid} AND RECIEVER IN {tuser}""")
     conn.commit()
 
 #function to update the id, recieved time  ,receiver (verify)

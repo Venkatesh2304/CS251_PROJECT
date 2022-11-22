@@ -9,14 +9,14 @@ conn = psycopg2.connect(database="test",
 cur = conn.cursor()
 cur.execute("""DROP TABLE IF EXISTS msg_server""")
 cur.execute("""CREATE TABLE msg_server(
-             ID INT PRIMARY KEY,
+             OID INTEGER,
              SENDER TEXT,
              RECIEVER TEXT,
              MESSAGE TEXT,
              TYPE TEXT,
-             STATUS TEXT,
              TIME_SENT TIMESTAMP,
-             TIME_SEEN TIMESTAMP);""")
+             PRIMARY KEY(SENDER,OID));""")
+cur.execute("CREATE INDEX RECIEVER_INDEX ON msg_server(RECIEVER)")
 conn.commit()
 conn.close()
 
