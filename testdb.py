@@ -12,10 +12,15 @@ import time
 # for i in getReadtMsg("user2","user42"):
 #     print(i)
 
-removeMessage([[5,"user5"],[15,"user5"]])
+# removeMessage([[5,"user5"],[15,"user5"]])
 l = getAllUnrecievedMsg("user5")
 for i in l:
     print(i)
+
+# dt = datetime.now(timezone.utc)
+# updateTimeRecieved(15,"user15","user5",dt)
+
+
 # for i in getUnreadtMsg("user2","user22",datetime.now(timezone.utc)):
 #     print(i)
 
