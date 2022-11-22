@@ -3,10 +3,11 @@ conn = connectToDB()
 
 def addMessage(sender,message,typ):
     cur = conn.cursor()
-    cur.execute(f"""INSERT INTO msg_client_recieved(SENDER,MESSAGE,TYPE) VALUES ('{sender}','{message}','{typ}')""")
-    conn.commit()
     cur.execute("SELECT * FROM msg_client_recieved")
-    return len(cur.fetchall())
+    id = len(cur.fetchall()) + 1
+    cur.execute(f"""INSERT INTO msg_client_recieved(ID, SENDER,MESSAGE,TYPE) VALUES ({id},'{sender}','{message}','{typ}')""")
+    conn.commit()
+    
 
 
 def updateTimeSent(id,timeSent):
