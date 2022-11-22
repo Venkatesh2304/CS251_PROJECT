@@ -12,11 +12,14 @@ def getMsgSent(id):
     cur.execute(f"SELECT MESSAGE FROM msg_client_sent WHERE ID = {id}")
     return cur.fetchone()[0]
 
-def addSentMsg(reciever,message,typ):
+def addSentMsg(reciever,message,typ,isgroup=False):
     cur = conn.cursor()
     cur.execute("SELECT * FROM msg_client_sent")
     id = len(cur.fetchall()) + 1
-    cur.execute(f"""INSERT INTO msg_client_sent(ID, RECIEVER,MESSAGE,TYPE) VALUES ({id},'{reciever}','{message}','{typ}')""")
+    if (isgroup):
+        cur.execute(f"""INSERT INTO msg_client_sent(ID, RECIEVER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{reciever}','{message}','{typ}','TRUE')""")
+    else :
+        cur.execute(f"""INSERT INTO msg_client_sent(ID, RECIEVER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{reciever}','{message}','{typ}','FALSE')""")
     conn.commit() 
     return id 
 
@@ -32,9 +35,12 @@ def updateTimeRecieved(id,timeRecieved):
     cur.execute(f"""UPDATE msg_client_sent SET TIME_SENT = TIMESTAMP '{timeRecieved}' WHERE ID = '{id}' """)
     conn.commit()
 
-def addRecvMsg(id,sender,message,timeSent,typ):
+def addRecvMsg(id,sender,message,timeSent,typ,isgroup=False):
     cur = conn.cursor()
     cur.execute("SELECT * FROM msg_client_recieved")
     timeSent = datetime.fromtimestamp(timeSent)
-    cur.execute(f"""INSERT INTO msg_client_recieved(ID, SENDER,MESSAGE,TYPE) VALUES ({id},'{sender}','{message}','{typ}')""")
+    if (isgroup):
+            cur.execute(f"""INSERT INTO msg_client_recieved(ID, SENDER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{sender}','{message}','{typ}','TRUE')""")  
+    else:
+            cur.execute(f"""INSERT INTO msg_client_recieved(ID, SENDER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{sender}','{message}','{typ}','FALSE')""")
     conn.commit()
