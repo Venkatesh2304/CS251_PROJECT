@@ -13,9 +13,9 @@ import time
 #     print(i)
 
 # removeMessage([[5,"user5"],[15,"user5"]])
-l = getAllUnrecievedMsg("user5")
-for i in l:
-    print(i)
+# l = getAllUnrecievedMsg("user5")
+# for i in l:
+#     print(i)
 
 # dt = datetime.now(timezone.utc)
 # updateTimeRecieved(15,"user15","user5",dt)
