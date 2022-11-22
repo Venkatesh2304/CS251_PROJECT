@@ -1,4 +1,5 @@
 from connectdb import connectToDB 
+from datetime import datetime
 conn = connectToDB()
 
 def addMessage(sender,message,typ):
@@ -8,10 +9,9 @@ def addMessage(sender,message,typ):
     cur.execute(f"""INSERT INTO msg_client_recieved(ID, SENDER,MESSAGE,TYPE) VALUES ({id},'{sender}','{message}','{typ}')""")
     conn.commit()
     
-
-
 def updateTimeSent(id,timeSent):
     cur = conn.cursor()
+    timeSent = datetime.fromtimestamp(timeSent)
     cur.execute(f"""UPDATE msg_client_sent SET TIME_RECIEVED = TIMESTAMP '{timeSent}' WHERE ID = '{id}' """)
     conn.commit()
 

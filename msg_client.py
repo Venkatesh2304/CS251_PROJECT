@@ -3,8 +3,14 @@
 # same as above from client 
 # function to get offline messages 
 # function to add recieved msg or msgs with recieved time 
+from datetime import datetime
 from connectdb import connectToDB 
 conn = connectToDB()
+
+def getMsgSent(id):
+    cur = conn.cursor()
+    cur.execute(f"SELECT MESSAGE FROM msg_client_sent WHERE ID = {id}")
+    return cur.fetchone()[0]
 
 def addSentMsg(reciever,message,typ):
     cur = conn.cursor()
@@ -16,11 +22,19 @@ def addSentMsg(reciever,message,typ):
 
 def updateTimeSent(id,timeSent):
     cur = conn.cursor()
+    timeSent = datetime.fromtimestamp(timeSent)
     cur.execute(f"""UPDATE msg_client_sent SET TIME_SENT = TIMESTAMP '{timeSent}' WHERE ID = '{id}' """)
     conn.commit()
 
 def updateTimeRecieved(id,timeRecieved):
     cur = conn.cursor()
+    timeRecieved = datetime.fromtimestamp(timeRecieved)
     cur.execute(f"""UPDATE msg_client_sent SET TIME_SENT = TIMESTAMP '{timeRecieved}' WHERE ID = '{id}' """)
     conn.commit()
 
+def addRecvMsg(id,sender,message,timeSent,typ):
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM msg_client_recieved")
+    timeSent = datetime.fromtimestamp(timeSent)
+    cur.execute(f"""INSERT INTO msg_client_recieved(ID, SENDER,MESSAGE,TYPE) VALUES ({id},'{sender}','{message}','{typ}')""")
+    conn.commit()
