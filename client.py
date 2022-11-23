@@ -73,6 +73,7 @@ class Client(Socket) :
       #groups 
       def create_group(self,gname)  : 
           self.add_send_queue("/create_group",{"gname" : gname})
+
       def add_members(self,gname,members) : 
           members  =  [members] if type(members) != list else members 
           self.add_send_queue("/add_members",{"gname":gname,"members":members})
@@ -96,6 +97,7 @@ while True :
      else : 
       time.sleep(10)
       break 
+   
     #  i = input("")
     #  if i == "-1" : 
     #     break 

@@ -1,4 +1,3 @@
-import socketserver
 import threading
 import socket
 import time 
@@ -58,7 +57,6 @@ class ClientConnection(Socket) :
       def send_msg(self,data,headers) :
           id , to , isGroup  = data["id"] , data["to"] , data["group"]
           t =  time.time()
-        
           msg_db.addMessage(id,self.user,data["to"],data["msg"],"text",t,isGroup)
           self.add_send_queue("/read_reciept", {"time" : t  , "id" : id , "level" : 1 })
           if isGroup : 

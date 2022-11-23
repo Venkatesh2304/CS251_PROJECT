@@ -65,19 +65,22 @@ def updateCount(mid,sender,recieved=True):
 def createGroup(admin,name):
         cur = conn.cursor()  
         cur.execute("SELECT * FROM Groups")
-        id = len(cur.fettchall())+1
-        cur.execute(f"""INSERT INTO Gropus(ID,NAME,ADMIN,MEMBERS) VALUES ({id},'{name}','{admin}','{admin}')""")
+        id = len(cur.fetchall())+1
+        cur.execute(f"""INSERT INTO Groups(ID,NAME,ADMIN,MEMBERS) VALUES ({id},'{name}','{admin}','{admin}')""")
         return id
 
 def addMembers(admin,gname,members):
     cur = conn.cursor()
     if (type(members) != list ):
         members = [members]
-    cur.execute(f"SELECT MEMBERS FROM Groups WHERE GNAME='{gname}' AND ADMIN = {admin}")
+    cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME='{gname}' AND ADMIN = '{admin}'")
     m = cur.fetchone()[0]
     for i in members:
         if (i not in m):
             m = m+","+i
-    cur.execute(f"UPDATE Groups SET MEMBERS = '{m}' WHERE GNAME='{gname}' AND ADMIN = {admin}")
+    cur.execute(f"UPDATE Groups SET MEMBERS = '{m}' WHERE NAME='{gname}' AND ADMIN = '{admin}'")
 
-
+def getAllGroupMembers(gname):
+    cur = conn.cursor()
+    cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME = '{gname}' ")
+    return cur.fetchone()[0]
