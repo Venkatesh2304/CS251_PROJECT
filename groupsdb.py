@@ -18,3 +18,8 @@ def addMembers(admin, id, members):
         if (i not in m):
             m = m+","+i
     cur.execute(f"UPDATE Groups SET MEMBERS = '{m}' WHERE ID = {id} AND ADMIN = {admin}")
+
+def getMembers(gname):
+    cur = conn.cursor()
+    cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME = '{gname}' ")
+    return cur.fetchone()[0]
