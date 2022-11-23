@@ -52,7 +52,7 @@ cur.execute("""CREATE TABLE msg_client_recieved(
 # cur.execute("CREATE INDEX SENDER_INDEX ON msg_client_recieved(SENDER)")
 
 cur.execute("""DROP TABLE IF EXISTS Groups""")
-cur.execute("""CREATE TABLE Gropus(
+cur.execute("""CREATE TABLE Groups(
              ID INTEGER PRIMARY KEY,
              NAME TEXT,
              ADMIN TEXT,

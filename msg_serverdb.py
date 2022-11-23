@@ -5,15 +5,20 @@ conn = connectToDB()
 #adds a message sent to database
 #checks for _id collision 
 #return the new id even if already inserted 
-def addMessage(oid,sender,reciever,message,typ,timesent):
-    #remove timeseen , add old _id (_id) while adding check wheter the old _id for that sender is already there 
+def addMessage(oid,sender,reciever,message,typ,timesent,isGroup):
     cur = conn.cursor()
-    # cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
-    # conn.commit()
     try:
-        timesent = datetime.fromtimestamp(timesent)
-        cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
-        conn.commit()
+       if isGroup : 
+          cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME = '{reciever}' ")
+          m = cur.fetchone()[0]
+          m = m.split(",")
+          m.remove(sender)
+          m = ",".join(m)
+          cur.execute(f"""INSERT INTO msg_grp_server(GNAME,MID,SENDER,MESSAGE,TYPE,TIME_SENT,COUNT,NOTSEEN) VALUES ({reciever},{oid},'{sender}','{message}','{typ}', TIMESTAMP '{timesent}',1,'{m}')""")
+       else : 
+          timesent = datetime.fromtimestamp(timesent)
+          cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
+       conn.commit()
     except:
         return
 
@@ -22,8 +27,10 @@ def addMessage(oid,sender,reciever,message,typ,timesent):
 def getAllUnrecievedMsg(user):
     cur = conn.cursor()
     cur.execute(f"""SELECT * FROM msg_server WHERE RECIEVER='{user}'""")
-    msg_list = cur.fetchall()
-    return msg_list
+    data = [{ "sender" : msg[1] , "msg" : msg[3] , "id" : msg[0]  , "sent" : msg[5].timestamp() , "group" : False  } for msg in cur.fetchall() ]
+    cur.execute(f"""SELECT * FROM msg_grp_server WHERE NOTSEEN LIKE '%{user}%'""")
+    data += [{ "sender" : msg[2] , "group" : msg[0] ,  "id" : msg[1] , "msg" : msg[3] , "sent" : msg[5].timestamp() } for msg in cur.fetchall() ]
+    return data 
 
 #removes the message with the given id, useless ig
 #id ,reciever 
@@ -39,57 +46,41 @@ def updateTimeRecieved(oid, sender, reciever, timeRecieved):
     cur.execute(f"""UPDATE msg_server SET TIME_RECIEVED = TIMESTAMP '{timeRecieved}' WHERE OID = '{oid}' AND SENDER = '{sender}' AND RECIEVER = '{reciever}'  """)
     conn.commit()
 
-#function to update the id, recieved time  ,receiver (verify)
-#delete msg [id] 
-  
+def updateCount(mid,sender,recieved=True):
+    cur = conn.cursor()
+    gname = cur.execute(f"""SELECT GNAME FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}'""")
+    cur.execute(f"""SELECT MEMBERS FROM Groups WHERE GNAME = {gname}""")
+    m = cur.fetchone()[0]
+    max = len(m.split(","))
+    m = m.split(",")
+    m.remove(sender)
+    m = ",".join(m)
+    cur.execute(f"""SELECT COUNT FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}'""")
+    count = cur.fetchone()[0] + 1
+    cur.execute(f"""UPDATE msg_grp_server SET COUNT = {count}, NOTSEEN = '{m}'""")
+    if (count == max):
+        cur.execute(f"""DELETE FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}' """)
 
 
+def createGroup(admin,name):
+        cur = conn.cursor()  
+        cur.execute("SELECT * FROM Groups")
+        id = len(cur.fetchall())+1
+        cur.execute(f"""INSERT INTO Groups(ID,NAME,ADMIN,MEMBERS) VALUES ({id},'{name}','{admin}','{admin}')""")
+        return id
 
+def addMembers(admin,gname,members):
+    cur = conn.cursor()
+    if (type(members) != list ):
+        members = [members]
+    cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME='{gname}' AND ADMIN = '{admin}'")
+    m = cur.fetchone()[0]
+    for i in members:
+        if (i not in m):
+            m = m+","+i
+    cur.execute(f"UPDATE Groups SET MEMBERS = '{m}' WHERE NAME='{gname}' AND ADMIN = '{admin}'")
 
-
-
-
-
-
-
-
-
-# #updates the status of messages recieved by user
-# def updateRecievedStatus(user):
-#     cur=conn.cursor()
-#     cur.execute(f"""UPDATE msg_server SET STATUS='R' WHERE RECIEVER='{user}' AND STATUS='NR'""")
-#     conn.commit()
-
-#STATUS = S/R/NR (seen,recieved,not recieved)
-#give time as datetime.datetime.now(timezone.utc)
-#gives all unread but recieved messages from a contact of a user 
-# def getUnreadtMsg(user,contact):
-#     cur = conn.cursor()
-#     cur.execute(f"""SELECT ID,MESSAGE,TYPE,STATUS,TIME_SENT,TIME_SEEN FROM msg_server WHERE RECIEVER='{user}' AND SENDER='{contact}' AND STATUS='R'""")
-#     msg_list = cur.fetchall()
-#     return msg_list
-
-# #gives all unrecieved messages from a contact of a user 
-# def getUnrecievedtMsg(user,contact):
-#     cur = conn.cursor()
-#     cur.execute(f"""SELECT ID,MESSAGE,TYPE,STATUS,TIME_SENT,TIME_SEEN FROM msg_server WHERE RECIEVER='{user}' AND SENDER='{contact}' AND STATUS='NR'""")
-#     msg_list = cur.fetchall()
-#     return msg_list 
-
-#gives all seen messages from a contact of a user 
-# def getReadtMsg(user,contact):
-#     cur = conn.cursor()
-#     cur.execute(f"""SELECT ID,MESSAGE,TYPE,STATUS,TIME_SENT,TIME_SEEN FROM msg_server WHERE RECIEVER='{user}' AND SENDER='{contact}' AND STATUS='S'""")
-#     msg_list = cur.fetchall()
-#     return msg_list
-
-# removes messages seen from a contact of a user 
-# def removeReadMessages(user,contact):
-#     cur = conn.cursor()
-#     cur.execute(f"""DELETE FROM msg_server WHERE RECIEVER='{user}' AND SENDER='{contact}' AND STATUS='S'""")
-#     conn.commit()
-#updates the status of messages seen by user
-# def updateSeenStatus(user,contact,time_seen):
-#     cur=conn.cursor()
-#     cur.execute(f"""UPDATE msg_server SET STATUS='S', TIME_SEEN = TIMESTAMP '{time_seen}' WHERE RECIEVER='{user}' AND SENDER='{contact}'""")
-#     conn.commit()
+def getAllGroupMembers(gname):
+    cur = conn.cursor()
+    cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME = '{gname}' ")
+    return cur.fetchone()[0]

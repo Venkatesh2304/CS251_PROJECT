@@ -1,4 +1,3 @@
-import socketserver
 import threading
 import socket
 import time 
@@ -39,7 +38,9 @@ class ClientConnection(Socket) :
           self.addr = addr  
           super().__init__(_socket)
           self.preauth_url_maps = {"/signup" : self.signup , "/login" : self.login }
-          self.url_maps = { "/test" : self.test , "/send_msg"  : self.send_msg , "/read_reciept" : self.read_reciept }
+          self.url_maps = { "/test" : self.test , "/send_msg"  : self.send_msg , "/read_reciept" : self.read_reciept , 
+                            "/create_group" : self.create_group , "/add_members" : self.add_members }
+      
       def login(self,data,headers) :
           isLogged = user_db.logInUser(data["user"],data["password"],self.addr[1]) 
           if isLogged :
@@ -54,30 +55,42 @@ class ClientConnection(Socket) :
           isCreated = user_db.signUpUser(data["user"],data["password"])
           self.add_send_queue("/signup_res", isCreated)
       def send_msg(self,data,headers) :
-          id , to = data["id"] , data["to"]
+          id , to , isGroup  = data["id"] , data["to"] , data["group"]
           t =  time.time()
-          msg_db.addMessage(id,self.user,data["to"],data["msg"],"text",t)
+          msg_db.addMessage(id,self.user,data["to"],data["msg"],"text",t,isGroup)
           self.add_send_queue("/read_reciept", {"time" : t  , "id" : id , "level" : 1 })
+          if isGroup : 
+              to = msg_db.getAllGroupMembers(to) 
+              to.remove(self.user)
+              print(to)
           if to in clients :  #to be replaced 
-              new_data = { "sender" : self.user , "msg" : data["msg"] , "id" : id  , "sent" : t  }
+              new_data = { "sender" : self.user , "msg" : data["msg"] , "id" : id  , "sent" : t , "group" : data["group"]  }
               clients[to].add_send_queue("/recieve_msg",new_data)
+      
       def read_reciept(self,data,headers) :
           id , sender  = data["id"] , data["sender"]
-          msg_db.updateTimeRecieved(id,sender,self.user,data["time"])
-          if sender in clients :
-             clients[sender].add_send_queue("/read_reciept", {"time" : data["time"] , "id" : id , "level" :2 },
-                                                {}, lambda : msg_db.removeMessage(id,sender,self.user) )
+          if data["group"] : 
+             msg_db.updateCount(id,sender)
+          else : 
+            msg_db.updateTimeRecieved(id,sender,self.user,data["time"])
+            if sender in clients :
+               clients[sender].add_send_queue("/read_reciept", {"time" : data["time"] , "id" : id , "level" :2 },
+                                                  {}, lambda : msg_db.removeMessage(id,sender,self.user) )
       def intial_send(self) : 
           unread_msgs = msg_db.getAllUnrecievedMsg(self.user)
           for msg in unread_msgs :
-             msg = { "sender" : msg[1] , "msg" : msg[3] , "id" : msg[0]  , "sent" : msg[5].timestamp()  }
              self.add_send_queue("/recieve_msg", msg)
              pass 
       def test(self,data,headers) : 
           if data.count("test messsage number") != 1000 : 
               raise Exception("full not recieved" + data[:10])
           print('received {!r}'.format(data.replace("test messsage number","")) + " :: " + str(self.addr[1]) + " :: " + str(headers) ) 
-        
+      def create_group(self,data,headers) : 
+          msg_db.createGroup(self.user,data["gname"])
+      def add_members(self,data,headers) : 
+          msg_db.addMembers(self.user,data["gname"],data["members"])
+
+
 sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
 server_address = ('localhost', 10000)
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
