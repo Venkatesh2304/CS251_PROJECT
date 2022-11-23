@@ -7,6 +7,9 @@ conn = connectToDB()
 #return the new id even if already inserted 
 def addMessage(oid,sender,reciever,message,typ,timesent,isGroup):
     cur = conn.cursor()
+    cur.execute("SELECT * FROM msg_server")
+    print(cur.fetchall())
+    timesent = datetime.fromtimestamp(timesent)
     try:
        if isGroup : 
           cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME = '{reciever}' ")
@@ -14,13 +17,12 @@ def addMessage(oid,sender,reciever,message,typ,timesent,isGroup):
           m = m.split(",")
           m.remove(sender)
           m = ",".join(m)
-          cur.execute(f"""INSERT INTO msg_grp_server(GNAME,MID,SENDER,MESSAGE,TYPE,TIME_SENT,COUNT,NOTSEEN) VALUES ({reciever},{oid},'{sender}','{message}','{typ}', TIMESTAMP '{timesent}',1,'{m}')""")
+          cur.execute(f"""INSERT INTO msg_grp_server(GNAME,MID,SENDER,MESSAGE,TYPE,TIME_SENT,COUNT,NOTSEEN) VALUES ('{reciever}',{oid},'{sender}','{message}','{typ}', TIMESTAMP '{timesent}',1,'{m}')""")
        else : 
-          timesent = datetime.fromtimestamp(timesent)
           cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
        conn.commit()
-    except:
-        return
+    except Exception as e : 
+        print(e)
 
 #gives all the unrecieved messages of a user
 #rtype [[]] 
@@ -48,8 +50,9 @@ def updateTimeRecieved(oid, sender, reciever, timeRecieved):
 
 def updateCount(mid,sender,recieved=True):
     cur = conn.cursor()
-    gname = cur.execute(f"""SELECT GNAME FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}'""")
-    cur.execute(f"""SELECT MEMBERS FROM Groups WHERE GNAME = {gname}""")
+    cur.execute(f"""SELECT GNAME FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}'""")
+    gname = cur.fetchone()[0]
+    cur.execute(f"""SELECT MEMBERS FROM Groups WHERE NAME = '{gname}' """)
     m = cur.fetchone()[0]
     max = len(m.split(","))
     m = m.split(",")
@@ -61,12 +64,14 @@ def updateCount(mid,sender,recieved=True):
     if (count == max):
         cur.execute(f"""DELETE FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}' """)
 
-
 def createGroup(admin,name):
         cur = conn.cursor()  
         cur.execute("SELECT * FROM Groups")
         id = len(cur.fetchall())+1
         cur.execute(f"""INSERT INTO Groups(ID,NAME,ADMIN,MEMBERS) VALUES ({id},'{name}','{admin}','{admin}')""")
+        conn.commit()
+        cur.execute("SELECT * FROM Groups")
+        print( cur.fetchall() )
         return id
 
 def addMembers(admin,gname,members):
@@ -79,6 +84,7 @@ def addMembers(admin,gname,members):
         if (i not in m):
             m = m+","+i
     cur.execute(f"UPDATE Groups SET MEMBERS = '{m}' WHERE NAME='{gname}' AND ADMIN = '{admin}'")
+    conn.commit()
 
 def getAllGroupMembers(gname):
     cur = conn.cursor()

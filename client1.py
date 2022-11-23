@@ -34,11 +34,13 @@ class Client(Socket) :
             print("User created") 
           else : 
              print("Already exists")
+      
       def send_msg(self,to,msg,isGroup=False,headers ={}) :
           id = self.db.addSentMsg(to,msg,"text")
           msg = {  "id": id  , "to" : to , "msg" : msg  , "group" : isGroup}
           print(msg)
           self.add_send_queue("/send_msg",msg,headers)
+
       def recieve_msg(self,data,headers) : 
           t = time.time()
           data = data if type(data) == list else [data]
@@ -46,7 +48,7 @@ class Client(Socket) :
                 self.print(colored("You have recieved a message from","blue") + f""":: {data['sender']} , msg :: {data['msg']} , time :: { datetime.fromtimestamp(data['sent']).strftime("%H:%M:%S")  }    """)
                 self.add_send_queue("/read_reciept", {"id": data['id'] , "time": t , "sender" : data["sender"] , "group" : bool(data["group"]) })
                 self.db.addRecvMsg( data["id"] , data["sent"] , data["msg"] , t , "text")
-
+      
       def read_reciept(self,data,headers) : 
           level = data["level"]
           msg = self.db.getMsgSent(data["id"])
@@ -71,9 +73,11 @@ class Client(Socket) :
       def create_group(self,gname)  : 
           self.add_send_queue("/create_group",{"gname" : gname})
           time.sleep(0.5) #we will recieve ack in future 
+          
       def add_members(self,gname,members) : 
           members  =  [members] if type(members) != list else members 
           self.add_send_queue("/add_members",{"gname":gname,"members":members})
+      
       def print(self,*args) : 
           logging.info(" ".join(args))       
 
@@ -81,11 +85,9 @@ sock = Client( socket.socket(socket.AF_INET, socket.SOCK_STREAM) , 1)
 sock.connect(server_address)
 sock.start()
 #sock.login_req(input("User : \n"),input("Password : \n"))
-sock.login_req("venkatesh","123")
-count  = 0 
+sock.login_req(input(),"123")
+count  =0 
 x = []
-x += ["CreateGroup test","AddMember test atishay","AddMember test aadithya"]
-x += ["SendGroup test hi,guys"]
 while True : 
      inputs =  { "Send" :  sock.send_msg , "SendGroup" : lambda to,msg : sock.send_msg(to,msg,True) , "CreateGroup" : sock.create_group ,
                   "AddMember" : sock.add_members } #, "PrintRecieved" : sock.print_recv , "PrintSent" : sock.print_sent }     
@@ -103,7 +105,7 @@ while True :
       break 
    
 
-
+   
     #  i = input("")
     #  if i == "-1" : 
     #     break 

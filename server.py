@@ -60,12 +60,14 @@ class ClientConnection(Socket) :
           msg_db.addMessage(id,self.user,data["to"],data["msg"],"text",t,isGroup)
           self.add_send_queue("/read_reciept", {"time" : t  , "id" : id , "level" : 1 })
           if isGroup : 
-              to = msg_db.getAllGroupMembers(to) 
-              to.remove(self.user)
-              print(to)
-          if to in clients :  #to be replaced 
-              new_data = { "sender" : self.user , "msg" : data["msg"] , "id" : id  , "sent" : t , "group" : data["group"]  }
-              clients[to].add_send_queue("/recieve_msg",new_data)
+              recievers = msg_db.getAllGroupMembers(to).split(",")
+              recievers.remove(self.user)
+          else : 
+             recievers = [to]
+          for reciever in recievers : 
+            if reciever in clients :  #to be replaced 
+               new_data = { "sender" : self.user , "msg" : data["msg"] , "id" : id  , "sent" : t , "group" : data["group"]  }
+               clients[reciever].add_send_queue("/recieve_msg",new_data)
       
       def read_reciept(self,data,headers) :
           id , sender  = data["id"] , data["sender"]
@@ -78,6 +80,7 @@ class ClientConnection(Socket) :
                                                   {}, lambda : msg_db.removeMessage(id,sender,self.user) )
       def intial_send(self) : 
           unread_msgs = msg_db.getAllUnrecievedMsg(self.user)
+          print( self.user , unread_msgs )
           for msg in unread_msgs :
              self.add_send_queue("/recieve_msg", msg)
              pass 

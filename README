@@ -11,7 +11,12 @@ TECHNOLOGY USED:
 5. ZLIB FOR DATA COMPRESSION
 
 TESTING PROCEDURE:
-
+0) Run createddb.py to create tables .
+1) Go to the test folder . 
+2) Run the following command there : 
+     ===>  python ../server.py & python test.py 
+3) You will get the inputs in the inputs.txt and outputs in outputs.txt 
+4) To View Each user input and output they are in seperate files 
 
 
 ON PROGRESS (ALMOST COMPLETED):
