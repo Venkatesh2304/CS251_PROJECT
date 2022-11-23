@@ -20,20 +20,7 @@ def addMessage(gname,mid,sender,message,typ,timesent):
     except:
         return
 
-def updateCount(mid,sender,recieved):
-    cur = conn.cursor()
-    gname = cur.execute(f"""SELECT GNAME FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}'""")
-    cur.execute(f"""SELECT MEMBERS FROM Groups WHERE GNAME = {gname}""")
-    m = cur.fetchone()[0]
-    max = len(m.split(","))
-    m = m.split(",")
-    m.remove(sender)
-    m = ",".join(m)
-    cur.execute(f"""SELECT COUNT FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}'""")
-    count = cur.fetchone()[0] + 1
-    cur.execute(f"""UPDATE msg_grp_server SET COUNT = {count}, NOTSEEN = '{m}'""")
-    if (count == max):
-        cur.execute(f"""DELETE FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}' """)
+
 #gives all the unrecieved messages of a user
 #rtype [[]] 
 def getAllUnrecievedMsg(reciever):

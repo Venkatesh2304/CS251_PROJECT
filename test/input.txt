@@ -1,31 +1,23 @@
 ==> in_venkatesh <==
 venkatesh
 123
-yash
-36
--1
+Send yash 19
 
 
 ==> in_aadithya <==
 aadithya
 123
-atishay
-86
--1
+Send atishay 66
 
 
 ==> in_atishay <==
 atishay
 123
-aadithya
-19
--1
+Send aadithya 30
 
 
 ==> in_yash <==
 yash
 123
-venkatesh
-26
--1
+Send venkatesh 29
 
