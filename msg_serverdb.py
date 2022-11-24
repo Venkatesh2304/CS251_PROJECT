@@ -111,6 +111,11 @@ def addPublicKey(user, key):
 
 def getPublicKey(user):
         cur = conn.cursor()
-        cur.execute(f"""SELECT PUBLIC_KEY FROM Users WHERE USERNAME = '{user}')""")
-        return cur.fetchone()[0]
+        cur.execute(f"""SELECT PUBLIC_KEY FROM Users WHERE USERNAME = '{user}'""")
+        key = cur.fetchone()[0]
+        if (key == None):
+            return False
+        else:
+            return key
 
+        
