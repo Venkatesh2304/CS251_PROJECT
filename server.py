@@ -1,3 +1,4 @@
+import json
 import threading
 import socket
 import time 
@@ -6,8 +7,8 @@ import pandas as pd
 import msg_serverdb as msg_db
 import userdb  as user_db 
 
-for user in ["venkatesh","aadithya","atishay","yash"] : 
-    user_db.signUpUser(user,"123")
+#for user in ["venkatesh","aadithya","atishay","yash"] : 
+#    user_db.signUpUser(user,"123")
 
 clients = {}
 
@@ -35,6 +36,7 @@ def client_handle(conn,addr) :
 
 # Create a TCP/IP socket
 class ClientConnection(Socket) : 
+      
       def __init__(self, _socket , addr = None ):
           self.addr = addr  
           super().__init__(_socket)
@@ -53,9 +55,19 @@ class ClientConnection(Socket) :
           thread = threading.Thread(target = self.intial_send )
           thread.start()
           return isLogged
+          
       def signup(self,data,headers):
           isCreated = user_db.signUpUser(data["user"],data["password"])
+          if isCreated : 
+             self.login(data,headers)
           self.add_send_queue("/signup_res", isCreated)
+
+      def get_public_key(self,user,headers) :
+          self.add_send_queue("/public_key_response",json.dumps(self.db.get_public_key(user)))
+      
+      def send_key(self,data,headers) : 
+          clients[data["to"]].add_send_queue("/set_secret_key",data)
+
       def send_msg(self,data,headers) :
           id , to , isGroup  = data["id"] , data["to"] , data["group"] 
           t =  time.time()
@@ -84,9 +96,12 @@ class ClientConnection(Socket) :
               
       def intial_send(self) : 
           unread_msgs = msg_db.getAllUnrecievedMsg(self.user)
+          unread_read_reciepts = msg_db.getAllReadRecipts(self.user)
           for msg in unread_msgs :
              self.add_send_queue("/recieve_msg", msg)
-             pass 
+          for msg in unread_read_reciepts :
+             self.add_send_queue("/read_reciept", msg)
+          
       def test(self,data,headers) : 
           if data.count("test messsage number") != 1000 : 
               raise Exception("full not recieved" + data[:10])
@@ -94,11 +109,11 @@ class ClientConnection(Socket) :
       
       def create_group(self,data,headers) : 
           msg_db.createGroup(self.user,data["gname"])
-          self.add_send_queue("/ack","")
+          self.add_send_queue("/ack",'"creategroup"')
 
       def add_members(self,data,headers) : 
           msg_db.addMembers(self.user,data["gname"],data["members"])
-          self.add_send_queue("/ack","")
+          self.add_send_queue("/ack","'add_member'")
 
          
 sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )

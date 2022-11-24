@@ -23,7 +23,7 @@ def addMessage(oid,sender,reciever,message,typ,timesent,isGroup):
           cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
        conn.commit()
     except Exception as e : 
-        print(e)
+        print(e,2)
 
 #gives all the unrecieved messages of a user
 #rtype [[]] 
@@ -38,7 +38,7 @@ def getAllUnrecievedMsg(user):
 
 def getAllReadRecipts(sender):
     cur = conn.cursor()
-    cur.execute(f"""SELECT * FROM msg_server WHERE SENDER='{sender} AND TIME_RECIEVED IS NOT NULL""")
+    cur.execute(f"""SELECT * FROM msg_server WHERE SENDER='{sender}' AND TIME_RECIEVED IS NOT NULL""")
     data = [{ "level":2, "id" : msg[0]  , "time" : msg[6].timestamp()} for msg in cur.fetchall() ]
     return data
 

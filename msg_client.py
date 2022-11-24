@@ -11,7 +11,7 @@ class clientDB:
     def __init__(self, username):
         self.user = username
         cur = conn.cursor()
-        cur.execute(f"""DROP TABLE IF EXISTS msg_client_sent_{username}""")
+        #cur.execute(f"""DROP TABLE IF EXISTS msg_client_sent_{username}""")
         cur.execute(f"""CREATE TABLE IF NOT EXISTS msg_client_sent_{username}(
              ID INTEGER PRIMARY KEY,
              ISGROUP TEXT,
@@ -20,7 +20,7 @@ class clientDB:
              TYPE TEXT,
              TIME_SENT TIMESTAMP,
              TIME_RECIEVED TIMESTAMP);""")
-        cur.execute(f"""DROP TABLE IF EXISTS msg_client_recieved_{username}""")
+        #cur.execute(f"""DROP TABLE IF EXISTS msg_client_recieved_{username}""")
         cur.execute(f"""CREATE TABLE  IF NOT EXISTS msg_client_recieved_{username}(
              ID INTEGER PRIMARY KEY,
              ISGROUP TEXT,

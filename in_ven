@@ -3,5 +3,5 @@ venkatesh
 CreateGroup test
 AddMember test atishay
 AddMember test aadithya
-SendGroupFile test f.png
+Send aadithya abc
 -1
