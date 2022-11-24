@@ -42,7 +42,9 @@ class ClientConnection(Socket) :
           super().__init__(_socket)
           self.preauth_url_maps = {"/signup" : self.signup , "/login" : self.login }
           self.url_maps = { "/test" : self.test , "/send_msg"  : self.send_msg , "/read_reciept" : self.read_reciept , 
-                            "/create_group" : self.create_group , "/add_members" : self.add_members }
+                            "/create_group" : self.create_group , "/add_members" : self.add_members ,
+                             "/set_public_key" : self.set_public_key , 
+                             "/get_public_key" : self.get_public_key , "/send_key" : self.send_key   }
           is_group_creating = False 
 
       def login(self,data,headers) :
@@ -62,8 +64,12 @@ class ClientConnection(Socket) :
              self.login(data,headers)
           self.add_send_queue("/signup_res", isCreated)
 
+      def set_public_key(self,key,headers) : 
+          msg_db.addPublicKey(self.user,key)
+
       def get_public_key(self,user,headers) :
-          self.add_send_queue("/public_key_response",json.dumps(self.db.get_public_key(user)))
+          print(user)
+          self.add_send_queue("/public_key_response",{ "user" : user , "key" : msg_db.getPublicKey(user)} )
       
       def send_key(self,data,headers) : 
           clients[data["to"]].add_send_queue("/set_secret_key",data)

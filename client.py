@@ -21,8 +21,9 @@ def a2b(text) :
     return base64.b64decode(text)
 
 
-padding_character = "{"
+padding_character = b"{"
 e = 65537 
+rsa_key_size = 2048
 server_address = ('localhost', 10000 )
 
 class Client(Socket) : 
@@ -32,7 +33,8 @@ class Client(Socket) :
           self.user =  user
           super().__init__(_socket)
           self.url_maps = { "/login_res" : self.login_res , "/signup_res" : self.signup_res , 
-                            "/read_reciept" : self.read_reciept , "/recieve_msg": self.recieve_msg ,  "/ack" : self.ack}
+                            "/read_reciept" : self.read_reciept , "/recieve_msg": self.recieve_msg ,  "/ack" : self.ack , 
+                            "/public_key_response" : self.public_key_response }
           self.preauth_url_maps = self.url_maps
           self.wait_public_key = defaultdict(list)
           self.wait_secret_key = defaultdict(list)
@@ -41,7 +43,7 @@ class Client(Socket) :
           self.is_blocked = True 
 
       def encrypt(self,msg, secret_key):
-           cipher = AES.new(secret_key)
+           cipher = AES.new(secret_key,AES.MODE_EAX)
            padded_private_msg = msg + (padding_character * ((16-len(msg)) % 16))
            encrypted_msg = cipher.encrypt(padded_private_msg)
            encrypted_msg = base64.b64encode(encrypted_msg).decode()
@@ -55,8 +57,8 @@ class Client(Socket) :
            return unpadded_private_msg
       
       def generatekey(self) : 
-          return Fernet.generate_key()
-            
+          #return Fernet.generate_key()
+           return  os.urandom(16)
       def login_req(self,user,password) :
           self.db = db.clientDB(user)
           self.user = user 
@@ -71,7 +73,11 @@ class Client(Socket) :
           else : 
             print("Credientials is wrong")
       
-      def signup_req(self,user,password) : 
+      def signup_req(self,user,password) :
+          self.db = db.clientDB(user)
+          self.user = user 
+          if not os.path.exists(user) : 
+              os.makedirs(user)
           self.add_send_queue("/signup",{"user" : user , "password" : password},{},lambda : self.block)
                     
       def signup_res(self,data,headers) : 
@@ -80,8 +86,8 @@ class Client(Socket) :
               print("User created") 
           else : 
              print("Already exists. Problem in Signup")
-          (self.public_key , self.private_key) = rsa.newkeys(10)
-          self.send_msg("/set_public_key", json.dumps(self.public_key.n)) 
+          (self.public_key , self.private_key) = rsa.newkeys(rsa_key_size)
+          self.add_send_queue("/set_public_key", self.public_key.n) 
 
       #get public key if  secret key no exists    
       def send_msg(self,to,msg,isGroup=False,fname=False,headers ={}) :
@@ -94,7 +100,8 @@ class Client(Socket) :
           secret_key = self.db.get_secret_key(to)
           if not secret_key : #generate key 
              self.wait_public_key[to].append(msg)
-             self.add_send_queue("/get_public_key",json.dumps(to))
+             self.add_send_queue("/get_public_key",to)
+             print(111)
           else : 
             msg["msg"]  =  self.encrypt(msg["msg"],secret_key)
             self.add_send_queue("/send_msg",msg,headers)
@@ -104,7 +111,7 @@ class Client(Socket) :
           data = data if type(data) == list else [data]
           for data in data : 
                 to = data["to"]
-                secret_key = self.db.get_key(to)
+                secret_key = self.db.get_secret_key(to)
                 if not secret_key : 
                    self.wait_secret_key[to].append(data)
                    return True 
@@ -144,11 +151,12 @@ class Client(Socket) :
           to , public_key = data["user"] , rsa.PublicKey(data["key"],e) #public_key is integer 
           print(" user public_key :: ", to , public_key )
           secret_key = self.generatekey() #return bytes key 
+          print( secret_key , public_key)
           enc_key =  b2a(rsa.encrypt(secret_key,public_key)) 
           self.add_send_queue("/send_key",{"to":to,"enc_key":enc_key})
           self.db.add_secret_key(to,secret_key) 
           for msg in self.wait_public_key[to] : 
-              msg["msg"]  =  self.encrypt(msg["msg"],secret_key)
+              msg["msg"]  =  self.encrypt( msg["msg"].encode() ,secret_key)
               print(" final e2e msg :: " , msg["msg"])
               self.add_send_queue("/send_msg",msg) #default headers 
       
@@ -156,7 +164,7 @@ class Client(Socket) :
       def set_secret_key(self,data,headers) : 
           to , encrypted_key = data["to"] , data["key"]
           key = rsa.decrypt( a2b(encrypted_key) , self.private_key )
-          self.db.add_key(to,key)
+          self.db.add_secret_key(to,key)
           for msg in self.wait_secret_key[to] : 
               self.recieve_msg(msg,{})
             
@@ -182,7 +190,7 @@ sock = Client( socket.socket(socket.AF_INET, socket.SOCK_STREAM) , 1)
 sock.connect(server_address)
 sock.start()
 #sock.login_req(input("User : \n"),input("Password : \n"))
-sock.login_req(input("User : \n"),input("Password : \n"))
+sock.signup_req(input("User : \n"),input("Password : \n"))
 count  = 0 
 
 
@@ -193,7 +201,7 @@ while True :
      
      i = input("")
      func = i.split(' ')[0]
-     if func  in inputs : 
+     if func  in inputs :
         inputs[func]( * tuple( i.split(" ")[1: ] ) )
      else : 
       time.sleep(10)
