@@ -103,3 +103,14 @@ def getAllGroupMembers(gname):
     cur = conn.cursor()
     cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME = '{gname}' ")
     return cur.fetchone()[0]
+
+def addPublicKey(user, key):
+    cur = conn.cursor()
+    cur.execute(f"""UPDATE Users SET PUBLIC_KEY = {key} WHERE USERNAME = '{user}'""")
+    conn.commit()
+
+def getPublicKey(user):
+        cur = conn.cursor()
+        cur.execute(f"""SELECT PUBLIC_KEY FROM Users WHERE USERNAME = '{user}')""")
+        return cur.fetchone()[0]
+

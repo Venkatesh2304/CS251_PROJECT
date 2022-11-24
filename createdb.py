@@ -15,7 +15,8 @@ cur.execute("""CREATE TABLE Users(
              USERNAME TEXT PRIMARY KEY,
              PASSWORD TEXT,
              STATUS TEXT,
-             PORT INTEGER);""")
+             PORT INTEGER,
+             PUBLIC_KEY INTEGER);""")
 
 
 cur.execute("""DROP TABLE IF EXISTS msg_server""")
@@ -39,6 +40,7 @@ cur.execute("""CREATE TABLE msg_client_sent(
              TYPE TEXT,
              TIME_SENT TIMESTAMP,
              TIME_RECIEVED TIMESTAMP);""")
+             
 cur.execute("CREATE INDEX RECIEVER_INDEX ON msg_client_sent(RECIEVER)")
 
 cur.execute("""DROP TABLE IF EXISTS msg_client_recieved""")
@@ -71,6 +73,15 @@ cur.execute("""CREATE TABLE msg_grp_server(
              COUNT INTEGER,
              NOTSEEN TEXT,
              PRIMARY KEY(GNAME,MID));""")
+
+# cur.execute("""CREATE TABLE keys_client(
+#              CONTACT PRIMARY KEY,
+#              KEY TEXT);""")
+
+# cur.execute("""CREATE TABLE keys_server(
+#              USER TEXT PRIMARY KEY ,
+#              KEY TEXT);""")
+
 # cur.execute("CREATE INDEX RECIEVER_INDEX ON msg_grp_server()")
 
 cur.execute("CREATE INDEX SENDER_INDEX ON msg_client_recieved(SENDER)")

@@ -5,6 +5,7 @@
 # function to add recieved msg or msgs with recieved time 
 from datetime import datetime
 from connectdb import connectToDB 
+import binascii
 conn = connectToDB()
 
 class clientDB:
@@ -20,6 +21,7 @@ class clientDB:
              TYPE TEXT,
              TIME_SENT TIMESTAMP,
              TIME_RECIEVED TIMESTAMP);""")
+
         cur.execute(f"""DROP TABLE IF EXISTS msg_client_recieved_{username}""")
         cur.execute(f"""CREATE TABLE  IF NOT EXISTS msg_client_recieved_{username}(
              ID INTEGER PRIMARY KEY,
@@ -29,7 +31,33 @@ class clientDB:
              TYPE TEXT,
              TIME_SENT TIMESTAMP,
              TIME_RECIEVED TIMESTAMP);""")
+
+        cur.execute(f"""DROP TABLE IF EXISTS keys_client_{username}""")    
+        cur.execute(f"""CREATE TABLE keys_client_{username}(
+             CONTACT TEXT PRIMARY KEY,
+             KEY TEXT,
+             ISGROUP TEXT);""")
         conn.commit()
+    
+    def addKey(self, contact, key, isGroup=False):
+        cur = conn.cursor()
+        key_64 = binascii.b2a_base64(key).decode()
+        if (isGroup):
+            cur.execute(f"""INSERT INTO keys_client_{self.user}(CONTACT,KEY, ISGROUP) VALUES('{contact}','{key_64}','TRUE')""")
+        else:
+            cur.execute(f"""INSERT INTO keys_client_{self.user}(CONTACT,KEY, ISGROUP) VALUES('{contact}','{key_64}','FALSE')""")
+        conn.commit()
+    
+    def getKey(self,contact, isgroup=False):
+        cur = conn.cursor()
+        if (isgroup):
+            cur.execute(f"""SELECT KEY FROM keys_client_{self.user} WHERE CONTACT = '{contact}' AND ISGROUP = 'TRUE' """)
+        else:
+            cur.execute(f"""SELECT KEY FROM keys_client_{self.user} WHERE CONTACT = '{contact}' AND ISGROUP = 'FALSE'""")
+        try:
+            return binascii.a2b_base64(cur.fetchone()[0])
+        except:
+            return False
 
     def getMsgSent(self,id):
         cur = conn.cursor()
