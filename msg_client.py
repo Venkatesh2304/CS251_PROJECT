@@ -8,12 +8,11 @@ from connectdb import connectToDB
 conn = connectToDB()
 
 class clientDB:
-
-    def _init_(self, username):
+    def __init__(self, username):
         self.user = username
         cur = conn.cursor()
-        cur.execute(f"""DROP TABLE IF EXISTS msg_client_sent{username}""")
-        cur.execute(f"""CREATE TABLE msg_client_sent{username}(
+        cur.execute(f"""DROP TABLE IF EXISTS msg_client_sent_{username}""")
+        cur.execute(f"""CREATE TABLE IF NOT EXISTS msg_client_sent_{username}(
              ID INTEGER PRIMARY KEY,
              ISGROUP TEXT,
              RECIEVER TEXT,
@@ -21,8 +20,8 @@ class clientDB:
              TYPE TEXT,
              TIME_SENT TIMESTAMP,
              TIME_RECIEVED TIMESTAMP);""")
-        cur.execute(f"""DROP TABLE IF EXISTS msg_client_recieved{username}""")
-        cur.execute(f"""CREATE TABLE msg_client_recieved{username}(
+        cur.execute(f"""DROP TABLE IF EXISTS msg_client_recieved_{username}""")
+        cur.execute(f"""CREATE TABLE  IF NOT EXISTS msg_client_recieved_{username}(
              ID INTEGER PRIMARY KEY,
              ISGROUP TEXT,
              SENDER TEXT,
@@ -32,21 +31,19 @@ class clientDB:
              TIME_RECIEVED TIMESTAMP);""")
         conn.commit()
 
-
-
     def getMsgSent(self,id):
         cur = conn.cursor()
-        cur.execute(f"SELECT MESSAGE FROM msg_client_sent_{self.user} WHERE ID = {id}")
-        return cur.fetchone()[0]
+        cur.execute(f"SELECT TYPE,MESSAGE FROM msg_client_sent_{self.user} WHERE ID = {id}")
+        return cur.fetchone()
         
     def addSentMsg(self,reciever,message,typ,isgroup=False):
         cur = conn.cursor()
         cur.execute(f"SELECT * FROM msg_client_sent_{self.user}")
         id = len(cur.fetchall()) + 1
         if (isgroup):
-            cur.execute(f"""INSERT INTO msg_client_sent(ID, RECIEVER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{reciever}','{message}','{typ}','TRUE')""")
+            cur.execute(f"""INSERT INTO msg_client_sent_{self.user}(ID, RECIEVER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{reciever}','{message}','{typ}','TRUE')""")
         else :
-            cur.execute(f"""INSERT INTO msg_client_sent(ID, RECIEVER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{reciever}','{message}','{typ}','FALSE')""")
+            cur.execute(f"""INSERT INTO msg_client_sent_{self.user}(ID, RECIEVER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{reciever}','{message}','{typ}','FALSE')""")
         conn.commit() 
         return id 
 

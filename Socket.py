@@ -4,7 +4,10 @@ import json
 import threading
 import zlib 
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+import time 
+
+warnings.simplefilter("ignore")
+# warnings.simplefilter(action='ignore', category=FutureWarning)
 
 class  Socket() : 
        MAX_BUFFER = 1024
@@ -17,6 +20,8 @@ class  Socket() :
            self.socket = _socket 
            self.id = 0
            self.is_authorised = False 
+           self.is_blocked = False 
+
        def start(self) : 
            self.send_threads = queue.Queue()
            self.send_main_worker = threading.Thread(target=self.Send_Worker)
@@ -39,8 +44,11 @@ class  Socket() :
        def Send_Worker(self) : 
            while True : 
              args = self.send_threads.get()
+             while self.is_blocked : 
+                   time.sleep(0.01)
              self.Send(*args)
              self.send_threads.task_done()
+        
        #The customised Send function which sends a given message 
        def Send(self,url,body,headers,do) :
            #make the request data

@@ -1,19 +1,17 @@
 ==> out_venkatesh <==
-INFO:root:[33mYour message has been sent to server[0m :: 19 , sent time :: 05:35:06
-INFO:root:[34mYou have recieved a message from[0m:: yash , msg :: 29 , time :: 05:35:09    
-INFO:root:[32mYour message has been sent to the reciever[0m:: 19 , sent time :: 05:35:09
+INFO:root:[33mYour message has been sent to server[0m :: 20 , sent time :: 17:28:17
+INFO:root:[32mYour message has been sent to the reciever[0m:: 20 , sent time :: 17:28:17
+INFO:root:[34mYou have recieved a message from[0m:: yash , msg :: 70 , time :: 17:28:20    
 
 ==> out_aadithya <==
-INFO:root:[33mYour message has been sent to server[0m :: 66 , sent time :: 05:35:07
-INFO:root:[34mYou have recieved a message from[0m:: atishay , msg :: 30 , time :: 05:35:08    
-INFO:root:[32mYour message has been sent to the reciever[0m:: 66 , sent time :: 05:35:08
+INFO:root:[33mYour message has been sent to server[0m :: 42 , sent time :: 17:28:18
+INFO:root:[32mYour message has been sent to the reciever[0m:: 42 , sent time :: 17:28:18
+INFO:root:[34mYou have recieved a message from[0m:: atishay , msg :: 2 , time :: 17:28:19    
 
 ==> out_atishay <==
-INFO:root:[34mYou have recieved a message from[0m:: aadithya , msg :: 66 , time :: 05:35:07    
-INFO:root:[33mYour message has been sent to server[0m :: 30 , sent time :: 05:35:08
-INFO:root:[32mYour message has been sent to the reciever[0m:: 30 , sent time :: 05:35:08
+INFO:root:[33mYour message has been sent to server[0m :: 2 , sent time :: 17:28:19
+INFO:root:[32mYour message has been sent to the reciever[0m:: 2 , sent time :: 17:28:19
 
 ==> out_yash <==
-INFO:root:[34mYou have recieved a message from[0m:: venkatesh , msg :: 19 , time :: 05:35:06    
-INFO:root:[33mYour message has been sent to server[0m :: 29 , sent time :: 05:35:09
-INFO:root:[32mYour message has been sent to the reciever[0m:: 29 , sent time :: 05:35:09
+INFO:root:[33mYour message has been sent to server[0m :: 70 , sent time :: 17:28:20
+INFO:root:[32mYour message has been sent to the reciever[0m:: 70 , sent time :: 17:28:20

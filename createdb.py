@@ -1,4 +1,6 @@
 import psycopg2
+from psycopg2.extras import LoggingConnection
+import logging 
 
 conn = psycopg2.connect(database="test",
                         host="localhost",

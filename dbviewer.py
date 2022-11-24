@@ -2,5 +2,11 @@ from connectdb import *
 import pandas as pd 
 conn = connectToDB()
 cur = conn.cursor()
-x = cur.execute("""SELECT * FROM msg_server""")
-print( pd.DataFrame(x) )
+table = "Groups"
+cur.execute(f"""SELECT * FROM {table}""")
+print( pd.DataFrame(cur.fetchall()) )
+# cur.execute("""select column_name
+# from information_schema.columns
+# where table_name = 'msg_grp_server';
+# """)
+# print( cur.fetchall() )

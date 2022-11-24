@@ -14,12 +14,13 @@ class Client(Socket) :
       def __init__(self, _socket , user , addr = None ):
           self.addr = addr    
           self.user =  user
-          self.db = db
           super().__init__(_socket)
           self.url_maps = { "/login_res" : self.login_res , "/signup_res" : self.signup_res , 
                             "/read_reciept" : self.read_reciept , "/recieve_msg": self.recieve_msg}
           self.preauth_url_maps = self.url_maps
+
       def login_req(self,user,password) :
+          self.db = db.clientDB(user)
           logging.basicConfig(filename=f"out_{user}",level="INFO")
           self.add_send_queue("/login",{"user" : user , "password" : password})
       def login_res(self,data,headers) : 
@@ -34,24 +35,32 @@ class Client(Socket) :
             print("User created") 
           else : 
              print("Already exists")
-      
-      def send_msg(self,to,msg,isGroup=False,headers ={}) :
-          id = self.db.addSentMsg(to,msg,"text")
-          msg = {  "id": id  , "to" : to , "msg" : msg  , "group" : isGroup}
-          print(msg)
+      def send_msg(self,to,msg,isGroup=False,fname=False,headers ={}) :
+          if fname : 
+             with open(fname) as f : 
+                msg =  f.read()
+          fname = fname if fname else "text"
+          id = self.db.addSentMsg(to,msg,fname)
+          msg = {  "id": id  , "to" : to , "msg" : msg  , "group" : isGroup , "type" : fname }
           self.add_send_queue("/send_msg",msg,headers)
-
       def recieve_msg(self,data,headers) : 
           t = time.time()
           data = data if type(data) == list else [data]
           for data in data : 
-                self.print(colored("You have recieved a message from","blue") + f""":: {data['sender']} , msg :: {data['msg']} , time :: { datetime.fromtimestamp(data['sent']).strftime("%H:%M:%S")  }    """)
+                msg = data["msg"]
+                if data["type"] != "text" : 
+                   with open( data["sender"]+" "+data["receiver"] + " " + data["fname"],"wb+") as f  : 
+                         f.write(data["msg"])
+                   msg = "File ==> "+ data["sender"]+" "+data["receiver"] + " " + data["fname"]
+                self.print(colored("You have recieved a message from","blue") + f""":: {data['sender']} , msg :: {msg} , time :: { datetime.fromtimestamp(data['sent']).strftime("%H:%M:%S")  }    """)
                 self.add_send_queue("/read_reciept", {"id": data['id'] , "time": t , "sender" : data["sender"] , "group" : bool(data["group"]) })
                 self.db.addRecvMsg( data["id"] , data["sent"] , data["msg"] , t , "text")
-      
+
       def read_reciept(self,data,headers) : 
           level = data["level"]
-          msg = self.db.getMsgSent(data["id"])
+          ( type , msg ) = self.db.getMsgSent(data["id"])
+          if type != "text" : 
+             msg = "File ==> " + type 
           if level == 0 : 
              self.print(f"Error Sending Message to the Server :: {msg} ")
           else :
@@ -73,11 +82,9 @@ class Client(Socket) :
       def create_group(self,gname)  : 
           self.add_send_queue("/create_group",{"gname" : gname})
           time.sleep(0.5) #we will recieve ack in future 
-          
       def add_members(self,gname,members) : 
           members  =  [members] if type(members) != list else members 
           self.add_send_queue("/add_members",{"gname":gname,"members":members})
-      
       def print(self,*args) : 
           logging.info(" ".join(args))       
 
@@ -85,9 +92,11 @@ sock = Client( socket.socket(socket.AF_INET, socket.SOCK_STREAM) , 1)
 sock.connect(server_address)
 sock.start()
 #sock.login_req(input("User : \n"),input("Password : \n"))
-sock.login_req(input(),"123")
-count  =0 
+sock.login_req(input(""),"123")
+count  = 0 
 x = []
+#x += ["CreateGroup test","AddMember test atishay","AddMember test aadithya"]
+#x += ["SendGroup test hi,guys"]
 while True : 
      inputs =  { "Send" :  sock.send_msg , "SendGroup" : lambda to,msg : sock.send_msg(to,msg,True) , "CreateGroup" : sock.create_group ,
                   "AddMember" : sock.add_members } #, "PrintRecieved" : sock.print_recv , "PrintSent" : sock.print_sent }     
@@ -105,7 +114,7 @@ while True :
       break 
    
 
-   
+
     #  i = input("")
     #  if i == "-1" : 
     #     break 

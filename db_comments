@@ -1,8 +1,0 @@
-deletemany : 
-    id_rec  = [(id,sender)]
-    tid = tuple([i[0] for i in id_rec])*2
-    tuser = tuple([i[1] for i in id_rec])*2
-    #tid = f"({id})"
-    #tuser = f"({sender})"
-    cur.execute(f"""DELETE FROM msg_server WHERE OID IN {tid} AND RECIEVER IN {tuser}""")
-    
