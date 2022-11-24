@@ -32,6 +32,12 @@ def getAllUnrecievedMsg(user):
     data += [{ "sender" : msg[2] , "group" : msg[0] ,  "id" : msg[1] , "msg" : msg[3] , "sent" : msg[5].timestamp() } for msg in cur.fetchall() ]
     return data 
 
+def getAllReadRecipts(sender):
+    cur = conn.cursor()
+    cur.execute(f"""SELECT * FROM msg_server WHERE SENDER='{sender} AND TIME_RECIEVED IS NOT NULL""")
+    data = [{ "level":2, "id" : msg[0]  , "time" : msg[6].timestamp()} for msg in cur.fetchall() ]
+    return data
+
 #removes the message with the given id, useless ig
 #id ,reciever 
 #[id] , reciever
