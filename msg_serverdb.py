@@ -5,7 +5,7 @@ conn = connectToDB()
 #adds a message sent to database
 #checks for _id collision 
 #return the new id even if already inserted 
-def addMessage(oid,sender,reciever,message,typ,timesent,isGroup):
+def addMessage(oid,sender,reciever,message,typ,isGroup):
     cur = conn.cursor()
     cur.execute("SELECT * FROM msg_server")
     timesent = datetime.fromtimestamp(timesent)
@@ -18,9 +18,9 @@ def addMessage(oid,sender,reciever,message,typ,timesent,isGroup):
           m.remove(sender)
           m = ",".join(m)
           print("Filtered members :: ", m )
-          cur.execute(f"""INSERT INTO msg_grp_server(GNAME,MID,SENDER,MESSAGE,TYPE,TIME_SENT,COUNT,NOTSEEN) VALUES ('{reciever}',{oid},'{sender}','{message}','{typ}', TIMESTAMP '{timesent}',1,'{m}')""")
+          cur.execute(f"""INSERT INTO msg_grp_server(GNAME,MID,SENDER,MESSAGE,TYPE,COUNT,NOTSEEN) VALUES ('{reciever}',{oid},'{sender}','{message}','{typ}',1,'{m}')""")
        else : 
-          cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
+          cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}')""")
        conn.commit()
     except Exception as e : 
         print(e)
@@ -54,6 +54,12 @@ def updateTimeRecieved(oid, sender, reciever, timeRecieved):
     cur = conn.cursor()
     timeRecieved = datetime.fromtimestamp(timeRecieved)
     cur.execute(f"""UPDATE msg_server SET TIME_RECIEVED = TIMESTAMP '{timeRecieved}' WHERE OID = '{oid}' AND SENDER = '{sender}' AND RECIEVER = '{reciever}'  """)
+    conn.commit()
+
+def updateTimeSent(oid, sender, reciever, timeSent):
+    cur = conn.cursor()
+    timeSent = datetime.fromtimestamp(timeSent)
+    cur.execute(f"""UPDATE msg_server SET TIME_SENT = TIMESTAMP '{timeSent}' WHERE OID = '{oid}' AND SENDER = '{sender}' AND RECIEVER = '{reciever}'  """)
     conn.commit()
 
 def updateCount(mid,sender,reciever):
