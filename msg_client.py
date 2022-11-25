@@ -54,8 +54,11 @@ class clientDB:
         else:
             cur.execute(f"""SELECT KEY FROM keys_client_{self.user} WHERE CONTACT = '{contact}' AND ISGROUP = 'FALSE'""")
         try:
-            return binascii.a2b_base64(cur.fetchone()[0])
-        except:
+            x = cur.fetchone()
+            return binascii.a2b_base64(x[0])
+        except Exception as e :
+            cur.execute(f"""SELECT * FROM keys_client_{self.user}""")
+            print( contact , cur.fetchall() )
             return False
 
     def getMsgSent(self,id):

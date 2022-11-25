@@ -100,6 +100,7 @@ class  Socket() :
               if url in self.preauth_url_maps : 
                 return self.preauth_url_maps[url](body,data)
               else : 
+                print( url )
                 raise Exception(407)          
            if  url in self.url_maps : 
               thread = threading.Thread( target = self.url_maps[url] , args = (body,data)) 

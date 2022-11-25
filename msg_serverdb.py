@@ -14,17 +14,15 @@ def addMessage(oid,sender,reciever,message,typ,timesent,isGroup):
        if isGroup : 
           cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME = '{reciever}' ")
           m = cur.fetchone()[0]
-          #print("All group members : ",m )
           m = m.split(",")
           m.remove(sender)
           m = ",".join(m)
-          print("Filtered members :: ", m )
           cur.execute(f"""INSERT INTO msg_grp_server(GNAME,MID,SENDER,MESSAGE,TYPE,COUNT,NOTSEEN,TIME_SENT) VALUES ('{reciever}',{oid},'{sender}','{message}','{typ}',1,'{m}', TIMESTAMP '{timesent}')""")
        else : 
           cur.execute(f"""INSERT INTO msg_server(OID,SENDER,RECIEVER,MESSAGE,TYPE,TIME_SENT) VALUES ({oid},'{sender}','{reciever}','{message}','{typ}', TIMESTAMP '{timesent}')""")
        conn.commit()
     except Exception as e : 
-        print(e,2)
+        print(e)
 
 #gives all the unrecieved messages of a user
 #rtype [[]] 
@@ -74,6 +72,7 @@ def updateCount(mid,sender,reciever):
     cur.execute(f"""UPDATE msg_grp_server SET COUNT = {count}, NOTSEEN = '{m}'""")
     if (count == max):
         cur.execute(f"""DELETE FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}' """)
+    conn.commit()
 
 def createGroup(admin,name):
         cur = conn.cursor()  
@@ -117,6 +116,6 @@ def getPublicKey(user):
         if (key == None):
             return False
         else:
-            return key
+            return int(key)
 
         
