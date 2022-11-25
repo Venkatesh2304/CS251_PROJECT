@@ -57,8 +57,7 @@ cur.execute("""CREATE TABLE msg_client_recieved(
 
 cur.execute("""DROP TABLE IF EXISTS Groups""")
 cur.execute("""CREATE TABLE Groups(
-             ID INTEGER PRIMARY KEY,
-             NAME TEXT,
+             NAME TEXT PRIMARY KEY,
              ADMIN TEXT,
              MEMBERS TEXT);""")
 
