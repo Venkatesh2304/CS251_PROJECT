@@ -7,37 +7,14 @@ import pandas as pd
 import msg_serverdb as msg_db
 import userdb  as user_db 
 
-#for user in ["venkatesh","aadithya","atishay","yash"] : 
-#    user_db.signUpUser(user,"123")
-
-clients = {}
-
-# class DB(pd.DataFrame) :
-#       def  __init__(self) : 
-#           super().__init__([],columns = ["id","_id","sender","reciever","msg","sent","recieved"])
-#       def add_msg(self,_id,sender,reciever,msg,time) :
-#           id = 1 if len(self.index) == 0 else self.index[-1] + 2 
-#           self.loc[len(self)] = [id,_id,sender,reciever,msg,time,None]
-#           return int(id) 
-#       def delete_msg(self,id) : 
-#           self = self[self.id != id ]
-#       def update_recieve_time(self,id,time) : 
-#           self.loc[self.id == id, 'recieved'] = time 
-#       def get_sender(self,id) :
-#           return self[self.id == id]["sender"].iloc[0]
-#       def get_unread_msg(self,reciever) :
-#           return self[(self.reciever == reciever) & (self.recieved.isna()) ].to_dict(orient="records")
-#       def get_read_reciept(self,sender) : 
-#           return self[(self.sender == sender) & (self.recieved.notna()) ].to_dict(orient="records")
-
-def client_handle(conn,addr) : 
-    connection = ClientConnection(conn,addr)
+def client_handle(conn,addr,clients) : 
+    connection = ClientConnection(conn,addr,clients)
     connection.start()
 
 # Create a TCP/IP socket
 class ClientConnection(Socket) : 
       
-      def __init__(self, _socket , addr = None ):
+      def __init__(self, _socket , addr , clients  ):
           self.addr = addr  
           super().__init__(_socket)
           self.preauth_url_maps = {"/signup" : self.signup , "/login" : self.login }
@@ -45,14 +22,14 @@ class ClientConnection(Socket) :
                             "/create_group" : self.create_group , "/add_members" : self.add_members ,
                              "/set_public_key" : self.set_public_key , 
                              "/get_public_key" : self.get_public_key , "/send_key" : self.send_key   }
-          is_group_creating = False 
+          self.clients = clients
 
       def login(self,data,headers) :
           isLogged = user_db.logInUser(data["user"],data["password"],self.addr[1]) 
           if isLogged :
             self.is_authorised = True 
           self.user = data['user']
-          clients[self.user] = self  
+          self.clients[self.user] = self  
           self.add_send_queue("/login_res", isLogged)
           thread = threading.Thread(target = self.intial_send )
           thread.start()
@@ -68,11 +45,13 @@ class ClientConnection(Socket) :
           msg_db.addPublicKey(self.user,key)
 
       def get_public_key(self,user,headers) :
-          print(user)
-          self.add_send_queue("/public_key_response",{ "user" : user , "key" : msg_db.getPublicKey(user)} )
+          if type(user) == dict : 
+            self.add_send_queue("/public_key_response",{ "user" : user["user"] , "group" : user["group"] ,  "key" : msg_db.getPublicKey(user["user"])  } )
+          else : 
+            self.add_send_queue("/public_key_response",{ "user" : user , "key" : msg_db.getPublicKey(user)} )
       
       def send_key(self,data,headers) : 
-          clients[data["to"]].add_send_queue("/set_secret_key",data)
+          self.clients[data["to"]].add_send_queue("/set_secret_key",data)
 
       def send_msg(self,data,headers) :
           id , to , isGroup  = data["id"] , data["to"] , data["group"] 
@@ -85,10 +64,10 @@ class ClientConnection(Socket) :
           else : 
              recievers = [to]
           for reciever in recievers : 
-            if reciever in clients :  #to be replaced 
-               new_data = { "sender" : self.user , "msg" : data["msg"] , "id" : id  , "sent" : t , "group" : data["group"] ,
+            if reciever in self.clients :  #to be replaced 
+               new_data = { "sender" : self.user , "msg" : data["msg"] , "id" : id  , "sent" : t , "group" :  to if isGroup else False ,
                              "type" : data["type"]  }
-               clients[reciever].add_send_queue("/recieve_msg",new_data)
+               self.clients[reciever].add_send_queue("/recieve_msg",new_data)
       
       def read_reciept(self,data,headers) :
           id , sender  = data["id"] , data["sender"]
@@ -96,8 +75,8 @@ class ClientConnection(Socket) :
              msg_db.updateCount(id,sender,self.user)
           else : 
             msg_db.updateTimeRecieved(id,sender,self.user,data["time"])
-            if sender in clients :
-               clients[sender].add_send_queue("/read_reciept", {"time" : data["time"] , "id" : id , "level" :2 },
+            if sender in self.clients :
+               self.clients[sender].add_send_queue("/read_reciept", {"time" : data["time"] , "id" : id , "level" :2 },
                                                   {}, lambda : msg_db.removeMessage(id,sender,self.user) )
               
       def intial_send(self) : 
@@ -121,16 +100,23 @@ class ClientConnection(Socket) :
           msg_db.addMembers(self.user,data["gname"],data["members"])
           self.add_send_queue("/ack","'add_member'")
 
-         
-sock = socket.socket( socket.AF_INET, socket.SOCK_STREAM )
-server_address = ('localhost', 10000)
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-sock.bind(server_address)
-sock.listen(100)
+class Server(socket.socket) : 
+    
+    def __init__(self,server_address,clients) : 
+        super().__init__(socket.AF_INET, socket.SOCK_STREAM )
+        server_address = ('localhost', server_address)
+        self.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.bind(server_address)
+        self.listen(100)
+        self.addr = server_address
+        self.clients = clients
+        self.count_active_conn = 0 
 
-while True:
-        connection, client_address = sock.accept()
-        print('Connection from', client_address)
-        client_thread = threading.Thread(target=client_handle,args=(connection,client_address))
-        client_thread.start()
+    def start(self) : 
+        while True:
+           connection, client_address = self.accept()
+           print('Connection from', client_address)
+           client_thread = threading.Thread(target=client_handle,args=(connection,client_address,self.clients))
+           client_thread.start()
+           self.count_active_conn += 1 
         

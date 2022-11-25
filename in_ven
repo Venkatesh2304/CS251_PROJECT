@@ -1,4 +1,7 @@
 venkatesh
 123
-Send aadithya abc
+CreateGroup test
+AddMember test aadithya
+AddMember test atishay
+SendGroupFile test f.png
 -1
