@@ -6,13 +6,14 @@ conn = connectToDB()
 #adds a message sent to database
 #checks for _id collision 
 #return the new id even if already inserted 
+
 def addMessage(oid,sender,reciever,message,typ,timesent,isGroup):
     cur = conn.cursor()
-    cur.execute("SELECT * FROM msg_server")
+    #cur.execute("SELECT * FROM msg_server")
     timesent = datetime.fromtimestamp(timesent)
     try:
        if isGroup : 
-          cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME = '{reciever}' ")
+          cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME = '{reciever}' FOR UPDATE")
           m = cur.fetchone()[0]
           m = m.split(",")
           m.remove(sender)
@@ -28,7 +29,7 @@ def addMessage(oid,sender,reciever,message,typ,timesent,isGroup):
 #rtype [[]] 
 def getAllUnrecievedMsg(user):
     cur = conn.cursor()
-    cur.execute("SELECT * FROM msg_server")
+   # cur.execute("SELECT * FROM msg_server")
     cur.execute(f"""SELECT * FROM msg_server WHERE RECIEVER='{user}'""")
     data = [{ "sender" : msg[1] , "msg" : msg[3] , "id" : msg[0]  , "sent" : msg[5].timestamp() , "group" : False , "type" : msg[4]  } for msg in cur.fetchall() ]
     cur.execute(f"""SELECT * FROM msg_grp_server WHERE NOTSEEN LIKE '%{user}%'""")
@@ -63,7 +64,7 @@ def updateTimeRecieved(oid, sender, reciever, timeRecieved):
 
 def updateCount(mid,sender,reciever):
     cur = conn.cursor()
-    cur.execute(f"""SELECT COUNT,NOTSEEN FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}'""")
+    cur.execute(f"""SELECT COUNT,NOTSEEN FROM msg_grp_server WHERE MID = {mid} AND SENDER = '{sender}' FOR UPDATE""")
     (count,notseen) = cur.fetchone()
     count += 1 
     notseen = notseen.split(",")
@@ -76,22 +77,22 @@ def updateCount(mid,sender,reciever):
 
 def createGroup(admin,name):
         cur = conn.cursor()  
-        cur.execute("SELECT * FROM Groups")
-        id = len(cur.fetchall())+1
-        cur.execute(f"SELECT ID FROM Groups WHERE NAME = '{name}'")
-        x = cur.fetchall()
-        if x : 
-           return 1   
-        cur.execute(f"""INSERT INTO Groups(ID,NAME,ADMIN,MEMBERS) VALUES ({id},'{name}','{admin}','{admin}')""")
+        # cur.execute("SELECT * FROM Groups")
+        # id = len(cur.fetchall())+1
+        #cur.execute(f"SELECT ID FROM Groups WHERE NAME = '{name}'")
+        # x = cur.fetchall()
+        # if x : 
+        #    return 1   
+        cur.execute(f"""INSERT IGNORE INTO Groups(NAME,ADMIN,MEMBERS) VALUES ('{name}','{admin}','{admin}')""")
         conn.commit()
-        cur.execute("SELECT * FROM Groups")
-        return id
+        # cur.execute("SELECT * FROM Groups")
+        # return id
 
 def addMembers(admin,gname,members):
     cur = conn.cursor()
     if (type(members) != list ):
         members = [members]
-    cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME='{gname}' AND ADMIN = '{admin}'")
+    cur.execute(f"SELECT MEMBERS FROM Groups WHERE NAME='{gname}' AND ADMIN = '{admin}' FOR UPDATE")
     m = cur.fetchone()[0]
     for i in members:
         if (i not in m):
