@@ -83,7 +83,7 @@ def createGroup(admin,name):
         # x = cur.fetchall()
         # if x : 
         #    return 1   
-        cur.execute(f"""INSERT IGNORE INTO Groups(NAME,ADMIN,MEMBERS) VALUES ('{name}','{admin}','{admin}')""")
+        cur.execute(f"""INSERT INTO Groups(NAME,ADMIN,MEMBERS) VALUES ('{name}','{admin}','{admin}') ON CONFLICT(NAME) DO NOTHING""")
         conn.commit()
         # cur.execute("SELECT * FROM Groups")
         # return id
@@ -113,10 +113,10 @@ def addPublicKey(user, key):
 def getPublicKey(user):
         cur = conn.cursor()
         cur.execute(f"""SELECT PUBLIC_KEY FROM Users WHERE USERNAME = '{user}'""")
-        key = cur.fetchone()[0]
+        key = cur.fetchone()
         if (key == None):
             return False
         else:
-            return int(key)
+            return int(key[0])
 
         

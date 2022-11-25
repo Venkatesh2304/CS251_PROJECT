@@ -3,23 +3,40 @@ import sys
 import time 
 import threading
 import random
-print(1)
-clients = ["venkatesh","aadithya","atishay","yash"]
-msg_to = ["venkatesh","aadithya","atishay","yash"]
-msg_to.reverse()
-def p(i) : 
-    os.system(f"python ../client.py < in_{clients[i]} ")
+import msg_client
+import rsa  
+n = 10
+m = 5
+msg_count = 5
+
+os.system("python ../createdb.py")
+os.system(f"python ../create_users.py {n}")
+print("Users Created")
+
+for i in range(n) : 
+    for j in range(n) : 
+        if i <= j : 
+           x , y = msg_client.clientDB(str(i+1)) , msg_client.clientDB(str(j+1))
+           key = os.urandom(16)
+           x.add_secret_key(str(j+1),key)
+           if i!= j :
+             y.add_secret_key(str(i+1),key)
+           
+server = threading.Thread( target=lambda : os.system(f"python ../super_server.py {n}"))
+server.start()
+clients = [str(i+1) for i in range(n)]
 os.system("rm out_* && rm in*")
 
-time.sleep(1)
+def p(i) : 
+    os.system(f"python ../client.py < in_{clients[i]} ")
+
 for i in range(0,len(clients)) :
     with open(f"in_{clients[i]}","w+") as f : 
-        f.write("\n".join([clients[i],"123" , f"Send {msg_to[i]} {str(random.randint(0,100))}" ,"\n"]))
-    x = threading.Thread( target= p , args=(i,) , daemon=True )
-    x.start()
-    time.sleep(1)
+        msgs = [ f"Send {random.randint(1,n)} {str(random.randint(0,100))}" for j in range(msg_count) ]
+        f.write("\n".join(
+            ["l",clients[i],"123"] + msgs + ["Exit","\n"]
+        ))
 
-os.system("tail " + " ".join([ "out_" + i for i in clients ]) + " > output.txt")
-os.system("tail " + " ".join([ "in_" + i for i in clients ]) + " > input.txt")
-time.sleep(1)
-# y.terminate()
+cmds = [ f"python ../client.py<in_{i+1}" for i in range(n) ]
+os.system( "&".join(cmds) )
+

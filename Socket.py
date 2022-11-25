@@ -67,6 +67,7 @@ class  Socket() :
            
            self.socket.sendall(len_str)
            self.socket.sendall(data)
+           time.sleep(0.1)
            do()
 
 

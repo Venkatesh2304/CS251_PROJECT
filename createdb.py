@@ -10,6 +10,13 @@ conn = psycopg2.connect(database="test",
 
 cur = conn.cursor()
 
+cur.execute("SELECT table_schema,table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_schema,table_name")
+rows = cur.fetchall()
+for row in rows:
+    cur.execute("drop table " + row[1] + " cascade")
+conn.commit()
+
+
 cur.execute("""DROP TABLE IF EXISTS Users""")
 cur.execute("""CREATE TABLE Users(
              USERNAME TEXT PRIMARY KEY,

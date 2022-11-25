@@ -1,4 +1,3 @@
-import json
 import threading
 import socket
 import time 
@@ -115,7 +114,7 @@ class Server(socket.socket) :
     def start(self) : 
         while True:
            connection, client_address = self.accept()
-           print('Connection from', client_address)
+           print('Connection from', client_address , " to ", self.addr )
            client_thread = threading.Thread(target=client_handle,args=(connection,client_address,self.clients))
            client_thread.start()
            self.count_active_conn += 1 

@@ -3,8 +3,14 @@ import threading
 from server import *
 from Socket import Socket
 import json 
+import sys 
+
+m = 5
+if len(sys.argv) == 2 : 
+   m = int(sys.argv[1])
 
 class SuperServer(socket.socket) : 
+      
       def __init__(self,m) : #m is number of servers 
           super().__init__(socket.AF_INET, socket.SOCK_STREAM )
           server_address = ('localhost', 10000)
@@ -20,7 +26,6 @@ class SuperServer(socket.socket) :
               self.servers.append( server )
       
       def send_assigned_server(self,conn) :
-           print(2)
            counts = [ server.count_active_conn for server in self.servers ]
            best_server_addr = self.servers[counts.index( min(counts) )].addr
            conn.sendall( json.dumps(best_server_addr).encode() )
@@ -35,7 +40,7 @@ class SuperServer(socket.socket) :
             client_thread = threading.Thread(target= self.send_assigned_server ,args=(connection,))
             client_thread.start()
 
-s = SuperServer(5)
+s = SuperServer(m)
 s.start()
         
 

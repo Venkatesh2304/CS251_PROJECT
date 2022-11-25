@@ -98,12 +98,8 @@ class clientDB:
         cur = conn.cursor()
         cur.execute(f"SELECT * FROM msg_client_recieved_{self.user}")
         timeSent = datetime.fromtimestamp(timeSent)
-        try : 
-          if (isgroup):
-                  cur.execute(f"""INSERT INTO msg_client_recieved_{self.user}(ID, SENDER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{sender}','{message}','{typ}','TRUE') """)  
-          else:
-                  cur.execute(f"""INSERT INTO msg_client_recieved_{self.user}(ID, SENDER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{sender}','{message}','{typ}','FALSE')""")
-        except :
-            cur.execute("ROLLBACK") 
+        if (isgroup):
+                cur.execute(f"""INSERT INTO msg_client_recieved_{self.user}(ID, SENDER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{sender}','{message}','{typ}','TRUE')""")  
+        else:
+                cur.execute(f"""INSERT INTO msg_client_recieved_{self.user}(ID, SENDER,MESSAGE,TYPE,ISGROUP) VALUES ({id},'{sender}','{message}','{typ}','FALSE')""")
         conn.commit()
-        
