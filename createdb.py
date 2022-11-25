@@ -73,6 +73,14 @@ cur.execute("""CREATE TABLE msg_grp_server(
              NOTSEEN TEXT,
              PRIMARY KEY(GNAME,MID));""")
 
+cur.execute("""DROP TABLE IF EXISTS server_key_msg""")
+cur.execute("""CREATE TABLE server_key_msg(
+             SNEDER TEXT,
+             TO TEXT,
+             KEY TEXT,
+             ISGROUP TEXT
+             PRIMARY KEY(SENDER,TO));""")
+
 # cur.execute("""CREATE TABLE keys_client(
 #              CONTACT PRIMARY KEY,
 #              KEY TEXT);""")
