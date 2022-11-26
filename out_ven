@@ -1,0 +1,14 @@
+DEBUG:root:sent 1669453120.4590912
+DEBUG:root:sent 1669453127.1879401
+DEBUG:root:Client.add_members() takes 3 positional arguments but 4 were given
+DEBUG:root:Client.add_members() takes 3 positional arguments but 4 were given
+DEBUG:root:sent 1669453215.1412277
+DEBUG:root:duplicate key value violates unique constraint "keys_client_ven_pkey"
+DETAIL:  Key (contact)=(test) already exists.
+
+DEBUG:root:Client.add_members() takes 3 positional arguments but 4 were given
+DEBUG:root:current transaction is aborted, commands ignored until end of transaction block
+
+DEBUG:root:sent 1669453401.9214168
+DEBUG:root:sent 1669453458.5432918
+DEBUG:root:sent 1669453584.8388357

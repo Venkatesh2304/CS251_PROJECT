@@ -106,4 +106,4 @@ class clientDB:
         except :
             cur.execute("ROLLBACK") 
         conn.commit()
-        
+    

@@ -96,6 +96,7 @@ class ClientConnection(Socket) :
           self.add_send_queue("/ack",'"creategroup"')
 
       def add_members(self,data,headers) : 
+          print(111)
           msg_db.addMembers(self.user,data["gname"],data["members"])
           self.add_send_queue("/ack","'add_member'")
 

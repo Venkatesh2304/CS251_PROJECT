@@ -124,6 +124,7 @@ class Client(Socket) :
           else : 
             msg["msg"]  =  self.encrypt(msg["msg"],secret_key)
             logging.debug(f"sent {time.time()}")
+            #print("sent")
             self.add_send_queue("/send_msg",msg,headers)
           
       def recieve_msg(self,data,headers) : 
@@ -136,6 +137,7 @@ class Client(Socket) :
                 secret_key = self.db.get_secret_key(_sender,data["group"])
                 #print( _sender , secret_key )
                 if not secret_key : 
+                   print(1)
                    self.wait_secret_key[_sender].append(data)
                    return True 
                 data['msg'] = self.decrypt(data['msg'],secret_key)
@@ -196,7 +198,7 @@ class Client(Socket) :
           #print(sender,to)
           for msg in self.wait_public_key[to] : 
               msg["msg"]  =  self.encrypt( msg["msg"] , secret_key)
-              print("unsend")
+              #print("unsend")
               self.add_send_queue("/send_msg",msg) #default headers 
           del self.wait_public_key[to] 
       

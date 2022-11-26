@@ -4,6 +4,7 @@ from server import *
 from Socket import Socket
 import json 
 import sys 
+import random 
 
 m = 5
 if len(sys.argv) == 2 : 
@@ -27,7 +28,8 @@ class SuperServer(socket.socket) :
       
       def send_assigned_server(self,conn) :
            counts = [ server.count_active_conn for server in self.servers ]
-           best_server_addr = self.servers[counts.index( min(counts) )].addr
+           #best_server_addr = self.servers[counts.index( min(counts) )].addr
+           best_server_addr = self.servers[random.randint(0,len(self.servers)-1)].addr
            conn.sendall( json.dumps(best_server_addr).encode() )
         
       def start(self) : 

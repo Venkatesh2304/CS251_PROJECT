@@ -67,7 +67,7 @@ class  Socket() :
            
            self.socket.sendall(len_str)
            self.socket.sendall(data)
-           time.sleep(0.1)
+           time.sleep(0.01)
            do()
 
 
@@ -96,7 +96,7 @@ class  Socket() :
            data = json.loads( self.recv(length) ) 
            body = self.handle_body(data)
            url = data["url"]
-           #print(url)
+           print(url)
            if not self.is_authorised :
               if url in self.preauth_url_maps : 
                 return self.preauth_url_maps[url](body,data)

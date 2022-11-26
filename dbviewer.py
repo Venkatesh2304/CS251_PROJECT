@@ -2,7 +2,7 @@ from connectdb import *
 import pandas as pd 
 conn = connectToDB()
 cur = conn.cursor()
-table = "Users"
+table = "Groups"
 cur.execute(f"""SELECT * FROM {table}""")
 print( pd.DataFrame(cur.fetchall()) )
 # cur.execute("""select column_name

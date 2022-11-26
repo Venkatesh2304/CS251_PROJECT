@@ -5,9 +5,9 @@ import threading
 import random
 import msg_client
 import rsa  
-n = 10
-m = 5
-msg_count = 5
+n = 20
+m = 10
+msg_count = 100
 
 os.system("python ../createdb.py")
 os.system(f"python ../create_users.py {n}")
