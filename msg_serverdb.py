@@ -56,6 +56,18 @@ def updateTimeRecieved(oid, sender, reciever, timeRecieved):
     cur.execute(f"""UPDATE msg_server SET TIME_RECIEVED = TIMESTAMP '{timeRecieved}' WHERE OID = '{oid}' AND SENDER = '{sender}' AND RECIEVER = '{reciever}'  """)
     conn.commit()
 
+def addKeyMessage(sender, to, key, isGroup):
+    cur = conn.cursor()
+    cur.execute(f"""INSERT INTO server_key_msg(SNEDER, TO, KEY, ISGROUP) VALUES('{sender}', '{to}', '{key}', '{isGroup}')""")
+    conn.commit()
+
+def getKeyMessage(to):
+    cur = conn.cursor()
+    cur.execute(f"""SELECT * FROM server_key_msg WHERE TO = '{to}'""")
+    data = [{ "sender" : msg[0] , "to" : msg[1] , "key" : msg[2]  , "group": bool(msg[3]) } for msg in cur.fetchall() ]
+    return data
+
+
 # def updateTimeSent(oid, sender, reciever, timeSent):
 #     cur = conn.cursor()
 #     timeSent = datetime.fromtimestamp(timeSent)
